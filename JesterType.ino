@@ -1,6 +1,6 @@
 #include<avr/pgmspace.h>
 #include <EEPROM.h>
-//test to move .git
+
 /*
 JesterType// real name pending
  ###########COPY NOTICE######################################################
