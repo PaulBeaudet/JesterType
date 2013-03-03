@@ -1,6 +1,6 @@
 #include<avr/pgmspace.h>
 #include <EEPROM.h>
-
+//
 /*
 JesterType// real name pending
  ###########COPY NOTICE######################################################
