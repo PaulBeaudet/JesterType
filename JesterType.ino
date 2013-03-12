@@ -40,9 +40,8 @@ JesterType// real name pending
  ######### CURCUIT DISCRIPTION ################################################
  Five momentary switches are physically wired in the following fashion starting from 
  the assigned pins (in the current case 2-6) for each pin.
- From pin to switch
- switch to 330om resistor // likely flexablity in resistor size.
- resistor to ground
+ From pin to switch--switch to 330om resistor--resistor to ground
+ //resistor is a safety for prototyping, not needed in purpose built application
  Thats it! Very simple for this prototype. Note that Internal pull-ups are used.
  ################################################################################
  */
@@ -76,33 +75,40 @@ char lastLetter;//holds the last letter
 //--condition chords for automated responses
 unsigned int no;
 unsigned int yes;
+//error correction and alternate assignments
+boolean firstAssignment;
 
 //common letter frequencies 2d array, data points are the letter's address space in eeprom
 #define LPLACES 7
-PROGMEM byte commonLetters[LPLACES][26]=
+#define FREQ 13
+PROGMEM byte commonLetters[LPLACES][FREQ]=
 {
   {
-    232,194,230,208,238,210,222,196,218,204,198,216,200,224,220,202,206,228,242,234,236,212,214,226,240,244}
+    232,194,230,208,238,210,222,196,218,204,198,216,200    }
   ,
   {
-    202,208,222,194,220,210,204,228,234,232,216,198,200,218,238,230,206,242,224,196,236,214,212,240,226,244}
+    202,208,222,194,220,210,204,228,234,232,216,198,200    }
   ,
   {
-    202,232,194,210,222,220,228,208,230,200,216,198,234,218,238,204,206,242,224,196,236,214,212,240,226,244}
+    202,232,194,210,222,220,228,208,230,200,216,198,234    }
   ,
   {
-    202,232,194,222,210,220,230,208,228,200,216,198,234,218,238,204,206,242,224,196,236,214,212,240,226,244}
+    202,232,194,222,210,220,230,208,228,200,216,198,234    }
   ,
   {
-    202,228,210,222,232,220,230,194,200,216,208,198,234,218,238,204,206,242,224,196,236,214,212,240,226,244}
+    202,228,210,222,232,220,230,194,200,216,208,198,234    }
   ,
   {
-    202,232,194,228,210,220,230,208,222,200,216,198,234,218,238,204,206,242,224,196,236,214,212,240,226,244}
+    202,232,194,228,210,220,230,208,222,200,216,198,234    }
   ,
   {
-    202,232,194,200,210,220,230,208,228,222,216,198,234,218,238,204,206,242,224,196,236,214,212,240,226,244}
+    202,232,194,200,210,220,230,208,228,222,216,198,234    }
 };
 //This could be reduced in size by only accounting for the first 13 most common letters
+PROGMEM byte uncommonLetters [FREQ]=
+{
+  218,204,224,206,238,242,196,236,214,240,212,226,244
+};
 
 //modifiers are assign as variables to pass to functions
 prog_char supeRight= KEY_RIGHT_GUI;
@@ -167,11 +173,13 @@ void setup()
     assign(31, getValue());
     sKey(3, BACK);
     //promt and assign for yes/no
+    EEPROM.write(255, false);
   }
 
   yes = word(EEPROM.read(60), EEPROM.read(61));
   no = word(EEPROM.read(62), EEPROM.read(63));
   //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
+  firstAssignment = EEPROM.read(255);
 }
 //-----------------------------------------------------------------------------begin main loop
 void loop()
@@ -216,22 +224,25 @@ void loop()
 //----------------------------storage fuctions---making assignments
 unsigned int assign(byte letter, unsigned int chordValue)
 {
-  int modifier=0;
   unsigned int storedVal=word(EEPROM.read(letter*2), EEPROM.read(letter*2+1));
-  //allow letters to posibily have more then one value
-  if(storedVal>0)
+  if(storedVal>0)// when assignment is taken
   {
+    int modifier;
     if (letter>96 && letter<123)
+      //Uppercase letters
     {
       modifier=-95;
     }
     storedVal=word(EEPROM.read(letter*2+modifier), EEPROM.read(letter*2+1+modifier));
+    //store a second set of values
   }
-  EEPROM.write(letter*2+modifier, highByte(chordValue));
+  EEPROM.write(letter*2, highByte(chordValue));
   delay(5);//!! delays after writes maybe redundent
-  EEPROM.write(letter*2+1+modifier, lowByte(chordValue));
+  EEPROM.write(letter*2+1, lowByte(chordValue));
   delay(5);
+  //make the assignment
   return storedVal;
+  //give a way to react to filled assignment, may be redundant 
 }
 
 //Checking
@@ -261,46 +272,143 @@ byte check(unsigned int chordValue)
       }
     }
   }
-  //nothing was in eeprom return 0
+  //no assignments made for given cord, return 0 or false
   return letter;
 }
 
 //------------------------------------------------------------------------learning function  
 byte learnUser()//!!symantically a misnomer as of current, better discribes intention
 {
-  //Give most common unassiged letter based on possition in the word
-  if(wordCount<LPLACES)
-  { 
-    for (int freq=0; freq<26; freq++)
-      //interate frequencies
-    {
-      byte letterNumber= pgm_read_byte(&(commonLetters[wordCount][freq]));
-      //explicitly read byte from progmem
-      unsigned int chord=word(EEPROM.read(letterNumber), EEPROM.read(letterNumber+1));
-      if (chord==0)
-        //check if the frequency is assigned for the given possition
+  if(firstAssignment==false)
+  {
+    //Give most common unassiged letter based on possition in the word
+    if(wordCount<LPLACES)
+    { 
+      for (int freq=0; freq<FREQ; freq++)
+        //interate frequencies
       {
-        return letterNumber/2;
-        //return the availible letter that is most fequently used for this possition
+        byte letterNumber= pgm_read_byte(&(commonLetters[wordCount][freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber), EEPROM.read(letterNumber+1));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
+      }
+      //common letters have been found assigned at this point
+      for (int freq=0; freq<FREQ; freq++)
+      {
+        byte letterNumber= pgm_read_byte(&(uncommonLetters[freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber), EEPROM.read(letterNumber+1));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
       }
     }
-    //lowercase have been found assigned at this point
-    //flag to make alternate assignments
-    //if possition one go for caps then numbers and certain first possition rellated symbols
-    //if > possition one go for synonomous chords except only upto the 13 most common vs 26
-  }
-  // old sequential search
-  //first priority assign lower case letter range
-  for(int address=194;address<252;address+=2)
-  {
-    unsigned int filled = word(EEPROM.read(address), EEPROM.read(address+1));
-    if(filled==0)
+    else
     {
-      int letterNum=address/2;
-      return letterNum;
+      for (int freq=0; freq<FREQ; freq++)
+        //interate frequencies
+      {
+        byte letterNumber= pgm_read_byte(&(commonLetters[2][freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber), EEPROM.read(letterNumber+1));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
+      }
+      //common letters have been found assigned at this point
+      for (int freq=0; freq<FREQ; freq++)
+      {
+        byte letterNumber= pgm_read_byte(&(uncommonLetters[freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber), EEPROM.read(letterNumber+1));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
+      }
+    };
+    // First assignment is done, switch the flag to true
+    firstAssignment=true;
+    EEPROM.write(255,firstAssignment);
+  }
+  if(firstAssignment)
+  {
+    //now reiterate checking mirror assignment
+    if(wordCount<LPLACES)
+    { 
+      for (int freq=0; freq<FREQ; freq++)
+        //interate frequencies
+      {
+        byte letterNumber= pgm_read_byte(&(commonLetters[wordCount][freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber/2-95), EEPROM.read(letterNumber/2-94));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
+      }
+      //common letters have been found assigned at this point
+      for (int freq=0; freq<FREQ; freq++)
+      {
+        byte letterNumber= pgm_read_byte(&(uncommonLetters[freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber/2-95), EEPROM.read(letterNumber/2-94));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
+      }
+    }
+    else
+    {
+      for (int freq=0; freq<FREQ; freq++)
+        //interate frequencies
+      {
+        byte letterNumber= pgm_read_byte(&(commonLetters[2][freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber/2-95), EEPROM.read(letterNumber/2-94));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
+      }
+      //common letters have been found assigned at this point
+      for (int freq=0; freq<FREQ; freq++)
+      {
+        byte letterNumber= pgm_read_byte(&(uncommonLetters[freq]));
+        //explicitly read byte from progmem
+        unsigned int chord=word(EEPROM.read(letterNumber/2-95), EEPROM.read(letterNumber/2-94));
+        if (chord==0)
+          //check if the frequency is assigned for the given possition
+        {
+          return letterNumber/2;
+          //return the availible letter that is most fequently used for this possition
+        }
+      }
     }
   }
+
   //second priority symbols/numbers
+  /*
   for(int address=66;address<127;address+=2)
   {
     unsigned int filled = word(EEPROM.read(address), EEPROM.read(address+1));
@@ -310,6 +418,7 @@ byte learnUser()//!!symantically a misnomer as of current, better discribes inte
       return letterNum;
     }
   }
+  */
 }
 
 //------------------------------------------------------------------------------------------button functions
@@ -359,7 +468,7 @@ unsigned int getValue()
     }
     //--set the past time
     past=currentTime;
-  }
+  } 
   //Serial.println(windowCount);
   return builtChord;
 }
@@ -411,6 +520,12 @@ int rawInput()
     }
   }
   return value;
+}
+
+// Error correction- recoginze noisy values and change them to likely common one
+unsigned int errorCorrection(unsigned int chord)
+{
+  //
 }
 
 //------------------------------------------------------------------User facing automation and response 
@@ -634,4 +749,6 @@ boolean session(int address, byte code)
     // true, ie do things unique to an unestablished session 
   };
 }
+
+
 
