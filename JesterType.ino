@@ -46,7 +46,7 @@ JesterType// real name pending
  ################################################################################
  */
 //-----------------eeprom session key, change to start over (if you forgot yes/no assignment)
-#define KEY 57
+#define KEY 56
 //-----------------------------------------------------------------define buttons
 byte buttons[]=
 {
@@ -78,6 +78,7 @@ unsigned int yes;
 
 //error correction and alternate assignments
 boolean firstAssignment;
+boolean assignmentDone;
 // the modifier key to the second assignment
 #define SECONDLAY 96
 // it define the amount of offset from the first assignment in eeprom
@@ -90,28 +91,28 @@ prog_char commonLetters[8][FREQ] PROGMEM=
 //the eighth place accounts for uncommon letters
 {
   {
-    't','a','s','h','w','i','o','b','m','f','c','l','d'          }
+    't','a','s','h','w','i','o','b','m','f','c','l','d'              }
   ,
   {
-    'e','h','o','a','n','i','f','r','u','t','l','c','d'          }
+    'e','h','o','a','n','i','f','r','u','t','l','c','d'              }
   ,
   {
-    'e','t','a','i','o','n','r','h','s','d','l','c','u'          }
+    'e','t','a','i','o','n','r','h','s','d','l','c','u'              }
   ,
   {
-    'e','t','a','o','i','n','s','h','r','d','l','c','u'          }
+    'e','t','a','o','i','n','s','h','r','d','l','c','u'              }
   ,
   {
-    'e','r','i','o','t','n','s','a','d','l','h','c','u'          }
+    'e','r','i','o','t','n','s','a','d','l','h','c','u'              }
   ,
   {
-    'e','t','a','r','i','n','s','h','o','d','l','c','u'          }
+    'e','t','a','r','i','n','s','h','o','d','l','c','u'              }
   ,
   {
-    'e','t','a','d','i','n','s','h','r','o','l','c','u'          }
+    'e','t','a','d','i','n','s','h','r','o','l','c','u'              }
   ,
   {
-    'm','f','p','g','w','y','b','v','k','x','j','q','z'          }
+    'm','f','p','g','w','y','b','v','k','x','j','q','z'              }
 };
 //modifiers are assign as variables to pass to functions
 prog_char supeRight= KEY_RIGHT_GUI;
@@ -165,7 +166,7 @@ void setup()
   {
     clearPROM(0, 256);
     //clear possible old assignments
-    paulsMacro();// this opens a text editor for testing, comment this out
+    //paulsMacro();// this opens a text editor for testing, comment this out
     while(digitalRead(buttons[0])==HIGH)
     {
       // waits for input to prompt yes and no
@@ -173,10 +174,10 @@ void setup()
     }
     delay(600);
     Keyboard.print("Yes?");
-    assign(30, getValue());
+    letterWrite(30, getValue(),0);
     sKey(4, BACK);
     Keyboard.print("no?");
-    assign(31, getValue());
+    letterWrite(31, getValue(),0);
     sKey(3, BACK);
     //promt and assign for yes/no
   }
@@ -185,6 +186,8 @@ void setup()
   no = word(EEPROM.read(62), EEPROM.read(63));
   //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
   firstAssignment = EEPROM.read(255);
+  assignmentDone= EEPROM.read(254);
+  //ascertain where we are in the learning process
 }
 //-----------------------------------------------------------------------------begin main loop
 void loop()
@@ -218,17 +221,14 @@ void loop()
     {
       letteR=learnUser();
       //receive a letter from the learning algorithm
-      if(letteR)
-      {
-        assign(letteR, chordValue);
-        // assign that letter to the kepmaping
-      }
-      else
-      {
-        // !! noise filtering is a work in progress
-        //learningDone=true;
-        letteR= bayesFilter();//just returns # to represent noise
-      };
+      assign(letteR, chordValue);
+      // assign that letter to the kepmaping
+    }
+    if(letteR == 0 && assignmentDone)
+    {
+      // !! noise filtering is a work in progress
+      //learningDone=true;
+      letteR= bayesFilter();//just returns # to represent noise
     }
     //print the result
     printLetter(letteR);
@@ -236,35 +236,28 @@ void loop()
 }
 //--------------------------------------------------------------------------end main loop
 //----------------------------storage fuctions---making assignments
+
 void assign(byte letter, unsigned int chordValue)
 {
-  unsigned int storedVal=word(EEPROM.read(letter*2), EEPROM.read(letter*2+1));
-  if (storedVal)
+  if(firstAssignment)
   {
-    //make an alternate assignment
-    if(oneCheck(letter, SECONDLAY))
-    {
-      //error case
-      printLetter(36);
-    }
-    else if( letter>96 && letter<123)
-    {
-      letterWrite(letter, chordValue, SECONDLAY);
-    };
+    letterWrite(letter, chordValue,SECONDLAY);
   }
   else
   {
-  letterWrite(letter, chordValue, 1);
+    letterWrite(letter, chordValue, 0);
+  };
   //make the assignment
-  }
 
 }
 
 void letterWrite(byte letter, unsigned int chordValue, byte modifier)
 {
-  EEPROM.write(letter-modifier*2, highByte(chordValue));
+  //Writes unsigned ints into EEPROM
+  byte hold = letter-modifier;
+  EEPROM.write(hold*2, highByte(chordValue));
   delay(5);//!! delays after writes maybe redundent
-  EEPROM.write(letter-modifier*2+1, lowByte(chordValue));
+  EEPROM.write(hold*2+1, lowByte(chordValue));
   delay(5);
 }
 
@@ -272,31 +265,31 @@ void letterWrite(byte letter, unsigned int chordValue, byte modifier)
 
 byte check(unsigned int chordValue)
 {
-  byte letter=0;
-  for(int address=2;address<254;address+=2)//for the space pre-allocated in eeprom
+  for(int address=194;address<246;address+=2)
+  //for the first layout
   {
     //check there is something the equals the current chord
     if(word(EEPROM.read(address), EEPROM.read(address+1)) == chordValue)
     {
-      // the address represents the letter assosiated with the chord
-      if(address>65)
-      {
-        //half of the address number equals assosiated letter 
-        //ie char 97==a, int values take twice the address space, therefore int 128 == a
-        letter=address/2;//luckly we are just dealing with even numbers
-        return letter;
-      }
-      //some of the addresses need more translating to comprehend their chord assosiation 
-      if(address<65)
-      {
-        //this allows storage of duplicate chord representations of lowercase values
-        letter=address/2+SECONDLAY;
-        return letter;
-      }
+      return address/2;
+      //translates to ascii number for the represented letter
+      //first layout defined by a mutipul of 2
+      // because ints need to be seperated into 2 bytes
+    }
+  }
+  //continue given no matches are found
+  for(int address=2;address<56; address+=2)
+  //for the second layout
+  {
+    if(word(EEPROM.read(address), EEPROM.read(address+1)) == chordValue)
+    {
+      return address/2+SECONDLAY;
+      //translates to ascii number for the represented letter
+      //second layout defined by an offset
     }
   }
   //no assignments made for given cord, return 0 or false
-  return letter;
+  return 0;
 }
 
 //------------------------------------------------------------------------learning function  
@@ -309,26 +302,30 @@ byte learnUser()//!!symantically a misnomer as of current, better discribes inte
     letter=learningSeq(SECONDLAY);
     // test success
     if (letter==0)
-    // if nothing is there we can check for symbols
+      // if nothing is there we can check for symbols
     {
+      /*
       //sybols and numbers
       for(int address=66;address<127;address+=2)
       {
         if(oneCheck(address,0)==0)
         {
-          letter=address/2;
+          return address/2;
         }
         //if all of these are assigned letter still be 0
-      }
+      }*/
       //passing an ultimate "false" or 0 to the main loop
-      //learningDone=true;
-      // learning flag could be set here
+      assignmentDone=true;
+      EEPROM.write(254,1);
     }
+    else
+    {
+      return letter;
+    };
   }
   else
-  // this is the first assignment
   {
-    //look for something unfilled in the first assignment
+    //make the first assignments
     letter=learningSeq(0);
     if (letter==0)
     {
@@ -338,14 +335,17 @@ byte learnUser()//!!symantically a misnomer as of current, better discribes inte
       firstAssignment=true;
       EEPROM.write(255, true);
     }
+    else
+    {
+      return letter;
+    };
   };
-
-  return letter;
 }
 
 unsigned int oneCheck(byte letter, byte mod)
 {
-  return word(EEPROM.read((letter-mod)*2), EEPROM.read((letter-mod)*2+1));
+  byte pHold= letter-mod;
+  return word(EEPROM.read(pHold*2), EEPROM.read(pHold*2+1));
 }
 
 byte learningSeq(byte modifier)
@@ -372,22 +372,22 @@ byte learningSeq(byte modifier)
   };
   return 0;
 }
-    
+
 byte freqLookup(int place, byte modifier)
 {
   byte letterNumber;
   for (int freq=0; freq<FREQ; freq++)
-      //interate frequencies
+    //interate frequencies
+  {
+    letterNumber= pgm_read_byte(&commonLetters[place][freq]);
+    if (oneCheck(letterNumber, modifier)==0)
+      //check if the frequency is assigned for the given possition
     {
-      letterNumber= pgm_read_byte(&commonLetters[place][modifier]);
-      if (oneCheck(letterNumber, modifier)==0)
-        //check if the frequency is assigned for the given possition
-      {
-        return letterNumber/2;
-        //return the availible letter that is most fequently used for this possition
-      }
+      return letterNumber;
+      //return the availible letter that is most fequently used for this possition
     }
-    return 0;
+  }
+  return 0;
 }
 
 //------------------------------------------noise filtering
@@ -725,6 +725,8 @@ boolean session(int address, byte code)
     // true, ie do things unique to an unestablished session 
   };
 }
+
+
 
 
 
