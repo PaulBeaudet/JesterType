@@ -228,7 +228,7 @@ void loop()
     {
       // !! noise filtering is a work in progress
       //learningDone=true;
-      letteR= bayesFilter();//just returns # to represent noise
+      letteR= filter(chordValue);//just returns # to represent noise
     }
     //print the result
     printLetter(letteR);
@@ -391,10 +391,56 @@ byte freqLookup(int place, byte modifier)
 }
 
 //------------------------------------------noise filtering
-byte bayesFilter()
+byte filter(unsigned int noise)
 {
-  // !! work in progress
-  return 35;
+  unsigned int correctToValue=9;
+  //cant be nine so if it prints this something is wrong
+  int lowPoint=15;
+  for(int address=194;address<246;address+=2)
+  {
+    unsigned int largerNum;
+    unsigned int compare=word(EEPROM.read(address), EEPROM.read(address+1));
+    unsigned int sComp=compare; //temporary second comparison
+    unsigned int fComp=noise; //temp first comparison
+    int pointCompare=0;
+    if(fComp>sComp)
+    {
+      largerNum=fComp;
+    }
+    else
+    {
+      largerNum=sComp;
+    };
+    unsigned long mag= 1;
+    while (mag*10<=largerNum)
+    {
+      mag*=10;
+    }
+    while(mag>0)
+    {
+      if(fComp>sComp)
+        //overflow prevention
+      {
+        pointCompare+= fComp/mag - sComp/mag;
+      }
+      else
+      {
+        pointCompare+= sComp/mag-fComp/mag;
+      }
+      fComp%=mag;
+      sComp%=mag;
+      mag/=10;
+    }
+    if(pointCompare<lowPoint)
+      //filters to the path of least resistence 
+    {
+      lowPoint=pointCompare;
+      //set a new lowpoint
+      correctToValue=compare;
+      //remember the lowpoint value
+    }
+  }
+  return check(correctToValue);
 }
 
 //------------------------------------------------------------------------------------------button functions
