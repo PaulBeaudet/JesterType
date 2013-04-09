@@ -58,27 +58,40 @@ byte buttons[]=
 #define WINDOW 125 // time window in which chords are recorded
 #define BOUNCE 30// time to debounce
 #define RESTING 11111 // this is the resting chord value
+//resting need to be changed to reflected the number of buttons
 
 //----------------------------------------------keyboard definitions
 //yes and no structure counters and flag
 #define LINESIZE 80//just needs to be under 255
-boolean capflag;
-int yesCount=0;
-int noCount=0;
-//word building
-byte printCount=0;
-int wordCount=0;
-int lastWordCount=0;
-int sentenceCount=0;
-int lastSentenceCount=0;
+
+//counts organized into an array for easy iteration 
+//and function passing
+byte count[7]={0,0,0,0,0,0,0};
+//pCount KEY, to make the code readable outside of iteration 
+#define LINEC 0 // line return sensor
+#define CWORD 1 //current word
+#define CSENT 2 //current sentence
+#define LWORD 3 // last word
+#define LSENT 4 // last sentence
+#define YESC 5 // yes count
+#define NOC 6 // no count
+#define METAC 7 // meta count
+//KEY: 0=line return/printed, 1=word, 2=sentence,    
+//3=last word, 4=last sentence, 5=yes, 6=no
+
 char lastLetter;//holds the last letter
+char letterBuffer[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+//holds up to 8 letters for autofill fucntions
 //--condition chords for automated responses
-unsigned int no;
-unsigned int yes;
+boolean rJustify=false;
+boolean cJustify=false;
+boolean explicitMode=false;
+word no;
+word yes;
+word meta;
 
 //error correction and alternate assignments
-boolean firstAssignment;
-boolean assignmentDone;
+boolean learningPhase[2];
 // the modifier key to the second assignment
 #define SECONDLAY 96
 // it define the amount of offset from the first assignment in eeprom
@@ -138,7 +151,6 @@ prog_char RTN = KEY_RETURN;
 
 
 #define BACK 178
-#define TAB 179
 
 #define REACT 300// time for computer host to react to commands
 
@@ -172,21 +184,25 @@ void setup()
       // waits for input to prompt yes and no
       ;
     }
-    delay(600);
+    delay(REACT);
     Keyboard.print("Yes?");
     letterWrite(30, getValue(),0);
     sKey(4, BACK);
     Keyboard.print("no?");
     letterWrite(31, getValue(),0);
     sKey(3, BACK);
+    Keyboard.print("meta?");
+    letterWrite(32, getValue(),0);
+    sKey(5, BACK);
     //promt and assign for yes/no
   }
 
   yes = word(EEPROM.read(60), EEPROM.read(61));
   no = word(EEPROM.read(62), EEPROM.read(63));
+  meta= word(EEPROM.read(64), EEPROM.read(65));
   //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
-  firstAssignment = EEPROM.read(255);
-  assignmentDone= EEPROM.read(254);
+  learningPhase[0] = EEPROM.read(255);
+  learningPhase[1]= EEPROM.read(254);
   //ascertain where we are in the learning process
 }
 //-----------------------------------------------------------------------------begin main loop
@@ -195,13 +211,24 @@ void loop()
   while(true)//to provide a way to start from step one with a return
   {
     //linesize limiter
-    if(printCount>LINESIZE)
+    if(count[LINEC]>LINESIZE)
     {
-      sKey(1, RTN);
-      printCount=0;
+      /*if(rJustify)
+      {
+        backTxt();
+      }
+      else
+      {*/
+        if(count[CWORD])
+        {  
+          sKey(count[CWORD],left);
+        }
+        sKey(1, RTN);
+        count[LINEC]=count[CWORD];
+      //};
     }
     //get the current button status 
-    unsigned int chordValue=getValue();
+    word chordValue=getValue();
     // if yes or no do those and restart the loop
     if(chordValue==yes)
     {
@@ -212,6 +239,11 @@ void loop()
     {
       noCase();
       return;//restart the loop
+    }
+    if(chordValue==meta)
+    {
+      metaCase();
+      return;
     }
     //-------------------------------letter related steps
     //figure out if the chord is a letter that has an assignment in eeprom
@@ -224,9 +256,9 @@ void loop()
       assign(letteR, chordValue);
       // assign that letter to the kepmaping
     }
-    if(letteR == 0 && assignmentDone)
+    if(letteR == 0 && learningPhase[1])
     {
-      // !! noise filtering is a work in progress
+      // !! filter currently finds minimal differance assigned chord
       //learningDone=true;
       letteR= filter(chordValue);//just returns # to represent noise
     }
@@ -237,9 +269,9 @@ void loop()
 //--------------------------------------------------------------------------end main loop
 //----------------------------storage fuctions---making assignments
 
-void assign(byte letter, unsigned int chordValue)
+void assign(byte letter, word chordValue)
 {
-  if(firstAssignment)
+  if(learningPhase[0])
   {
     letterWrite(letter, chordValue,SECONDLAY);
   }
@@ -251,7 +283,7 @@ void assign(byte letter, unsigned int chordValue)
 
 }
 
-void letterWrite(byte letter, unsigned int chordValue, byte modifier)
+void letterWrite(byte letter, word chordValue, byte modifier)
 {
   //Writes unsigned ints into EEPROM
   byte hold = letter-modifier;
@@ -263,7 +295,7 @@ void letterWrite(byte letter, unsigned int chordValue, byte modifier)
 
 //Checking
 
-byte check(unsigned int chordValue)
+byte check(word chordValue)
 {
   for(int address=194;address<246;address+=2)
   //for the first layout
@@ -296,7 +328,7 @@ byte check(unsigned int chordValue)
 byte learnUser()//!!symantically a misnomer as of current, better discribes intention
 {
   byte letter=0;
-  if(firstAssignment)//if the first assignment has been made
+  if(learningPhase[0])//if the first assignment has been made
   {
     //look for something unfilled in the second assignment
     letter=learningSeq(SECONDLAY);
@@ -315,7 +347,7 @@ byte learnUser()//!!symantically a misnomer as of current, better discribes inte
         //if all of these are assigned letter still be 0
       }*/
       //passing an ultimate "false" or 0 to the main loop
-      assignmentDone=true;
+      learningPhase[1]=true;
       EEPROM.write(254,1);
     }
     else
@@ -332,7 +364,7 @@ byte learnUser()//!!symantically a misnomer as of current, better discribes inte
       // if there is nothing there check the second
       letter=learningSeq(SECONDLAY);
       // and flag that the first assignment has been done
-      firstAssignment=true;
+      learningPhase[0]=true;
       EEPROM.write(255, true);
     }
     else
@@ -352,9 +384,9 @@ byte learningSeq(byte modifier)
 {
   byte letter;
   //Give most common unassiged letter based on possition in the word
-  if(wordCount<LPLACES)
+  if(count[CWORD]<LPLACES)
   { 
-    letter=freqLookup(wordCount, modifier);
+    letter=freqLookup(count[CWORD], modifier);
     if (letter==0)
     {
       letter=freqLookup(8, modifier);
@@ -391,7 +423,7 @@ byte freqLookup(int place, byte modifier)
 }
 
 //------------------------------------------noise filtering
-byte filter(unsigned int noise)
+byte filter(word noise)
 {
   unsigned int correctToValue=9;
   //cant be nine so if it prints this something is wrong
@@ -543,143 +575,299 @@ int rawInput()
   }
   return value;
 }
-
-// Error correction- recoginze noisy values and change them to likely common one
-unsigned int errorCorrection(unsigned int chord)
-{
-  //
-}
-
 //------------------------------------------------------------------User facing automation and response 
 
 //-------------------------------------------NO CASE
 // this is a test
 //!!both cases need work, there is a symantic issue with the number counting
-void noCase()
-{
-  if(noCount==0)
-  {
-    //comp suggestion case, no after word complete || first word 
-    if(yesCount==1 || sentenceCount==0)
-    {
-      byte addCount=sizeof(compSug);
-      addCount--;//-1 to take care of null
-      if(yesCount==1)
-      {
-        sKey(lastWordCount, BACK);
-        lastLetter=compSug[addCount-2];//this is the last letter of the computer suggestion
-        printCount-=lastWordCount;
-        sentenceCount-=lastWordCount;
-      }
-      Keyboard.print(compSug);
-      printCount+=addCount;
-      sentenceCount+=addCount;
-      lastWordCount=addCount;
-      return;
-    }
-    if(yesCount==2)
-    {
-      sKey(2, 178);//backspace twice
-      Keyboard.print("? ");
-      noCount++;
-      return;
-    }
-    //backspace, no count==0 general behaviour above are exceptions
-    sKey(1, BACK);
-    printCount--;
-    wordCount--;
-    sentenceCount--;
-    //Pronoun case
-    if(wordCount==0 && lastLetter>96)
-    {
-      capflag=true;
-      printLetter(lastLetter);
-      return;
-    }
-    noCount++;
-    return;
-  }
-  //end noCount 0 cases---begin nocount 1, ie double back
-  if(noCount==1)
-  {
-    if(yesCount==2)
-    {
-      sKey(2, BACK);
-      Keyboard.print("! ");
-      noCount++;
-      return;
-    }
-    if(wordCount==0 || sentenceCount==0)
-    {
-      return;
-    }
-    //double back general behaviour above are exceptions/ delete word
-    sKey(wordCount, BACK);
-    printCount-=wordCount;
-    sentenceCount-=wordCount;
-    noCount++;
-    return;
-  }
-}
-
-//------------------------------------------------------------------------YES CASE
 void yesCase()
 {
-  if(yesCount==0)
+  if(count[METAC]>1)
   {
-    if(printCount==0)
+    switch(count[METAC])
     {
-      sfill(4, ' ');
+    case 2://alt-tab//meta, yes..
+      switchWindow(); 
+      //will continue with case 1 unless meta increments
+      return;
+    case 3://2-4 fall through and mean the same thing
+    case 4:
+    case 5:
+      enter();
+      count[METAC]=0;
       return;
     }
-    //default, make a word
-    Keyboard.print(" ");
-    printCount++;
-    lastWordCount=wordCount+1;//accounts for space!!!
-    wordCount=0;//time for a new word!!
-    sentenceCount++;
-    yesCount++;
-    return;
   }
-  if(yesCount==1)
+  /*else if(count[CSENT]==0 && count[LINEC]==0)//not sure this will work
+    //inactivity case
   {
-    if(printCount==1)
+    switch(count[YESC])
     {
-      sfill(LINESIZE/2-4, ' ');
+    case 0:
+      sfill(4, ' ');
+      break;
+    case 1:
+      centerJust();//nothing, yes, yes
+      break;
+    case 2:
+      rightJust();//nothing, yes, yes, yes
+      break;
+    case 3:
+      enter();//nothing, yes, yes, yes, yes
+      break;
+    default:
+      count[YESC]=0;
+      return;
     }
-    sKey(1,BACK);//remove space from last word
-    lastWordCount++;
-    Keyboard.print(". ");
-    printCount++;// only goes up one because a space is removed
-    lastSentenceCount=sentenceCount+1;
-    sentenceCount=0;
-    yesCount++;
-    //noCount=0;
+  }*/
+  else
+  {
+    //regular activity 
+    switch(count[YESC])
+    {
+    case 0://yes
+      space();
+      break;
+    case 1://yes, yes
+      if(explicitMode==false)
+      {
+        period();
+        break;
+      }//in other words fall through when explicit mode is true
+    case 2://yes, yes, yes
+      enter();
+      break;
+    case 3://yes, yes, yes, yes
+      combo(rctrl,'s');
+      //save();
+      break;
+    default:
+      count[YESC]=0;
+      return;
+    }
+  };
+  count[YESC]++;
+}
+//###################################META/MAGIC
+void metaCase()//or "magic" keys
+{
+  switch(count[METAC])
+  {
+  case 0:
+    //modeSwitch(); // changes compisitional mode
+    explicitMode= !explicitMode;
+    break;
+  case 1:
+    //search();//open program
+    combo(rctrl, ' ');//SEARCH# bring up synaps, linux
+    break;
+  case 2://places or web search ##!!need to cater to OS
+    //webSearch();//open web site
+    sKey(1, right);//move one to the right for places option
+    break;
+  case 3://files or web search ##!!need to cater to OS
+    //fileSearch();//openlocal file
+    sKey(5, right);//move five to the right for web option
+    break;
+  case 4:
+    combo(rctrl, ' ');//close search 
+  default:
+    count[METAC]=0;
     return;
   }
+  count[METAC]++;
+}
+//#####################################NO
+void noCase()
+{
+  if(count[METAC])
+  {
+    //closeProgram();//alt-f4//meta, no
+    combo(lalt, f4);//CLOSE# close window
+  }
+  /*else if(count[CSENT]==0 && count[LINEC]==0)//nothing case?
+  {
+    //back();//alt-left//nothing, no..
+    combo(lalt, left);//BACK#browser back
+  }*/
+  else if(count[YESC])
+  {
+    switch(count[YESC])
+    {
+    case 1:
+      autofill();//or after word//yes, no
+      //whether autofill or spell correct is used depends
+      //on the amount of letters in the buffer
+      break;
+    case 2:
+      punctuation('?');
+      break;
+    case 3:
+      punctuation('!');
+      break;
+    }
+  }
+  else if(count[CWORD])
+  {
+    backSpace();//no... forSpaces inWord
+  }
+  else
+  {
+    if(count[LWORD] && count[LINEC])
+    {
+      count[CSENT]-=count[LWORD];
+      backlast(LWORD);//..no after aWord backspaced
+    }
+    else if (count[CSENT] && count[CSENT]<175 && count[LINEC])
+    {
+      backlast(CSENT);//..no after backword
+      //revert to backspace after sentence removal
+    }
+    else
+    {
+      count[LSENT]=0;
+      backSpace();
+    };
+  };
+  count[NOC]++;
+}
+//##########################yes no functions
+//###########################################formating functions
+void autofill()
+{
+}
+void backSpace()
+{
+  sKey(1,BACK);
+  countChange(-1);
+  //pronoun case
+  if(count[CWORD]==0 && letterBuffer[0]>96)
+  {
+    printLetter(letterBuffer[0]-32);
+  }
+}
+void backlast(byte last)
+{
+  sKey(count[last],BACK);
+  count[LINEC]-=count[last];
+  while(count[LINEC]>LINESIZE)
+  {
+    count[LINEC]+=LINESIZE;
+  }
+  count[last]=0;
+}
+
+void punctuation(char mark)
+{
+  sKey(2,BACK);
+  Keyboard.write(mark);
+  Keyboard.write(' ');
+  count[YESC]++;
+}
+//############ YES CASES
+void centerJust()
+{
+  count[LSENT]=0;
+  cJustify=true;
+  explicitMode=true;
+  sfill(LINESIZE/2-count[LINEC], ' ');
+}
+void rightJust()
+{
+  count[LSENT]=0;
+  rJustify=true;
+  explicitMode=true;
+  sfill(LINESIZE-1-count[LINEC], ' ');
+}
+void backTxt()
+{
+  sKey(count[LSENT],left);
+  sKey(count[LSENT],BACK);
+  sKey(count[LSENT],right);
+}
+void enter()
+{
+  if(rJustify)
+  {
+    count[LSENT]=0;
+    rJustify=false;
+  }
+  if(cJustify)
+  {
+    sKey(count[LSENT],left);
+    sKey(count[LSENT]/2,BACK);
+    sKey(count[LSENT],right);
+    cJustify=false;
+  }
+  Keyboard.write(RTN);
+  count[LINEC]=0;
+  explicitMode=false;
+}
+void space()
+{
+  Keyboard.write(' ');
+  countChange(1);
+  count[LWORD]=count[CWORD];
+  count[CWORD]=0;
+  if(rJustify || cJustify)
+  {
+    count[LSENT]++;
+  }
+}
+void period()
+{
+  sKey(1,BACK);
+  Keyboard.print(". ");
+  countChange(1);
+  count[LWORD]++;
+  count[LSENT]=count[CSENT];
+  count[CSENT]=0;
+}
+
+//########## Meta or Magic functions 
+void switchWindow()
+{
+  Keyboard.press(lalt);
+  Keyboard.press(tab);
+  delay(REACT);
+  Keyboard.press(tab);
+  delay(REACT);
+  Keyboard.releaseAll();
 }
 //--------------------------------------------keyboard functions
 //---------------------------letter printing
 void printLetter(byte letterNum)
 {
-  if(sentenceCount==0 || capflag)
+  if(count[CSENT]==0)
   {
     Keyboard.write(letterNum-32);
-    lastLetter=letterNum-32;
-    capflag=false;
+    letterBuffer[0]=letterNum-32;
   }
   else
   {
     Keyboard.write(letterNum);
-    lastLetter=letterNum;
-    yesCount=0;
-    noCount=0;
+    if(count[CWORD]<14)
+    {
+      letterBuffer[count[CWORD]]=letterNum;
+    }
+    count[YESC]=0;
+    count[NOC]=0;
+    //count[METAC]=0;
   }
-  printCount++;
-  wordCount++;
-  sentenceCount++;
+  countChange(1);
+  if(rJustify || cJustify)
+  {
+    count[LSENT]++;
+  }
 }
-
+void countChange(byte increment)
+{
+  for(byte i=0;i<3;i++)
+  {
+    count[i]=count[i]+increment;
+    //increments 'current' counts
+  }
+}
 //this is possibly kruft at this point
 //spacer
 void sfill(byte spacing, char Char)
@@ -689,11 +877,10 @@ void sfill(byte spacing, char Char)
     Keyboard.print(Char);
     if(Char==' ')
     {
-      printCount++;
+      count[LINEC]++;
     }
   }
 }
-
 //Multi key press
 void sKey(int presses, int key)
 {
@@ -742,8 +929,6 @@ void paulsMacro()
   Keyboard.releaseAll();
 }
 //-----------------------------------------------------------------------session related functions
-
-
 //------------------------------------clear EEPROM
 void clearPROM(int start, int finish)
 {
@@ -771,11 +956,3 @@ boolean session(int address, byte code)
     // true, ie do things unique to an unestablished session 
   };
 }
-
-
-
-
-
-
-
-
