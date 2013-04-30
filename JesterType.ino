@@ -249,8 +249,8 @@ void setup()
   {
     clearPROM(0, 256);
     //clear possible old assignments
-    wait();
-    paulsMacro();// this opens a text editor for testing, comment this out
+    //wait();
+    //paulsMacro();// this opens a text editor for testing, comment this out
     wait();
     delay(REACT);
     Keyboard.print("Yes?");
