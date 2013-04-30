@@ -46,7 +46,7 @@ JesterType// real name pending
  ################################################################################
  */
 //-----------------eeprom session key, change to start over (if you forgot yes/no assignment)
-#define KEY 56
+#define KEY 5
 //-----------------------------------------------------------------define buttons
 byte buttons[]=
 {
@@ -66,7 +66,8 @@ byte buttons[]=
 
 //counts organized into an array for easy iteration 
 //and function passing
-byte count[7]={0,0,0,0,0,0,0};
+byte count[7]={
+  0,0,0,0,0,0,0};
 //pCount KEY, to make the code readable outside of iteration 
 #define LINEC 0 // line return sensor
 #define CWORD 1 //current word
@@ -80,8 +81,10 @@ byte count[7]={0,0,0,0,0,0,0};
 //3=last word, 4=last sentence, 5=yes, 6=no
 
 char lastLetter;//holds the last letter
-char letterBuffer[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+char letterBuffer[14]={
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 //holds up to 8 letters for autofill fucntions
+byte sugSize=0;
 //--condition chords for automated responses
 boolean rJustify=false;
 boolean cJustify=false;
@@ -99,33 +102,104 @@ boolean learningPhase[2];
 //common letter frequencies 2d array, data points are the letter's address space in eeprom
 #define LPLACES 7
 #define FREQ 13
+//wordlist
 
+//common words to autocorrect based on first letter
+prog_char str0[] PROGMEM = "the";
+prog_char str1[] PROGMEM = "be";
+prog_char str2[] PROGMEM = "of";
+prog_char str3[] PROGMEM = "and";
+prog_char str4[] PROGMEM = "in";
+prog_char str5[] PROGMEM = "have";
+prog_char str6[] PROGMEM = "for";
+prog_char str7[] PROGMEM = "you";
+prog_char str8[] PROGMEM = "with";
+prog_char str9[] PROGMEM = "do";
+prog_char str10[] PROGMEM = "not";
+prog_char str11[] PROGMEM = "she";
+prog_char str12[] PROGMEM = "can";
+prog_char str13[] PROGMEM = "go";
+prog_char str14[] PROGMEM = "make";
+prog_char str15[] PROGMEM = "up";
+prog_char str16[] PROGMEM = "know";
+prog_char str17[] PROGMEM = "last";
+prog_char str18[] PROGMEM = "just";
+prog_char str19[] PROGMEM = "people";
+prog_char str20[] PROGMEM = "very";
+prog_char str21[] PROGMEM = "even";
+prog_char str22[] PROGMEM = "really";
+prog_char str23[] PROGMEM = "quite";
+prog_char str24[] PROGMEM = "zone";
+//prog_char str25[] PROGMEM = "xenon";
+// end of 1 letter shortcuts
+//x is the only exclusion "xenon" is not a word someone would likly use
+PROGMEM const char *oneCombos[] = 	   
+{   
+  str0,
+  str1,
+  str2,
+  str3,
+  str4,
+  str5,
+  str6,
+  str7,
+  str8,
+  str9,
+  str10,
+  str11,
+  str12,
+  str13,
+  str14,
+  str15,
+  str16,
+  str17,
+  str18,
+  str19,
+  str20,
+  str21,
+  str22,
+  str23,
+  str24,
+};
+#define ONESIZE sizeof(oneCombos)
+//in progress
+PROGMEM const char *twoCombos[]=
+{
+};
+#define TWOSIZE sizeof(twoCombos)
+
+PROGMEM const char *threeCombos[]=
+{
+};
+char buffer[20];
+//large enough for the largest string it must hold
+//###frequencies 
 prog_char commonLetters[8][FREQ] PROGMEM=
 //the eighth place accounts for uncommon letters
 {
   {
-    't','a','s','h','w','i','o','b','m','f','c','l','d'              }
+    't','a','s','h','w','i','o','b','m','f','c','l','d'                      }
   ,
   {
-    'e','h','o','a','n','i','f','r','u','t','l','c','d'              }
+    'e','h','o','a','n','i','f','r','u','t','l','c','d'                      }
   ,
   {
-    'e','t','a','i','o','n','r','h','s','d','l','c','u'              }
+    'e','t','a','i','o','n','r','h','s','d','l','c','u'                      }
   ,
   {
-    'e','t','a','o','i','n','s','h','r','d','l','c','u'              }
+    'e','t','a','o','i','n','s','h','r','d','l','c','u'                      }
   ,
   {
-    'e','r','i','o','t','n','s','a','d','l','h','c','u'              }
+    'e','r','i','o','t','n','s','a','d','l','h','c','u'                      }
   ,
   {
-    'e','t','a','r','i','n','s','h','o','d','l','c','u'              }
+    'e','t','a','r','i','n','s','h','o','d','l','c','u'                      }
   ,
   {
-    'e','t','a','d','i','n','s','h','r','o','l','c','u'              }
+    'e','t','a','d','i','n','s','h','r','o','l','c','u'                      }
   ,
   {
-    'm','f','p','g','w','y','b','v','k','x','j','q','z'              }
+    'm','f','p','g','w','y','b','v','k','x','j','q','z'                      }
 };
 //modifiers are assign as variables to pass to functions
 prog_char supeRight= KEY_RIGHT_GUI;
@@ -148,10 +222,7 @@ prog_char f10 = KEY_F10;
 prog_char f12 = KEY_F12;
 prog_char tab = KEY_TAB;
 prog_char RTN = KEY_RETURN;
-
-
 #define BACK 178
-
 #define REACT 300// time for computer host to react to commands
 
 //substitutes
@@ -178,12 +249,9 @@ void setup()
   {
     clearPROM(0, 256);
     //clear possible old assignments
-    //paulsMacro();// this opens a text editor for testing, comment this out
-    while(digitalRead(buttons[0])==HIGH)
-    {
-      // waits for input to prompt yes and no
-      ;
-    }
+    wait();
+    paulsMacro();// this opens a text editor for testing, comment this out
+    wait();
     delay(REACT);
     Keyboard.print("Yes?");
     letterWrite(30, getValue(),0);
@@ -201,8 +269,8 @@ void setup()
   no = word(EEPROM.read(62), EEPROM.read(63));
   meta= word(EEPROM.read(64), EEPROM.read(65));
   //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
-  learningPhase[0] = EEPROM.read(255);
-  learningPhase[1]= EEPROM.read(254);
+  learningPhase[0] = EEPROM.read(254);
+  learningPhase[1]= EEPROM.read(255);
   //ascertain where we are in the learning process
 }
 //-----------------------------------------------------------------------------begin main loop
@@ -214,17 +282,17 @@ void loop()
     if(count[LINEC]>LINESIZE)
     {
       /*if(rJustify)
-      {
-        backTxt();
+       {
+       backTxt();
+       }
+       else
+       {*/
+      if(count[CWORD])
+      {  
+        sKey(count[CWORD],left);
       }
-      else
-      {*/
-        if(count[CWORD])
-        {  
-          sKey(count[CWORD],left);
-        }
-        sKey(1, RTN);
-        count[LINEC]=count[CWORD];
+      sKey(1, RTN);
+      count[LINEC]=count[CWORD];
       //};
     }
     //get the current button status 
@@ -263,7 +331,9 @@ void loop()
       letteR= filter(chordValue);//just returns # to represent noise
     }
     //print the result
+    cleanSug();
     printLetter(letteR);
+    autoSug();
   }
 }
 //--------------------------------------------------------------------------end main loop
@@ -298,7 +368,7 @@ void letterWrite(byte letter, word chordValue, byte modifier)
 byte check(word chordValue)
 {
   for(int address=194;address<246;address+=2)
-  //for the first layout
+    //for the first layout
   {
     //check there is something the equals the current chord
     if(word(EEPROM.read(address), EEPROM.read(address+1)) == chordValue)
@@ -311,7 +381,7 @@ byte check(word chordValue)
   }
   //continue given no matches are found
   for(int address=2;address<56; address+=2)
-  //for the second layout
+    //for the second layout
   {
     if(word(EEPROM.read(address), EEPROM.read(address+1)) == chordValue)
     {
@@ -324,70 +394,77 @@ byte check(word chordValue)
   return 0;
 }
 
-//------------------------------------------------------------------------learning function  
+//------------------------------------------------------------------------learning function 
+/*
 byte learnUser()//!!symantically a misnomer as of current, better discribes intention
-{
-  byte letter=0;
-  if(learningPhase[0])//if the first assignment has been made
+ {
+ byte letter=0;
+ if(learningPhase[0])//if the first assignment has been made
+ {
+ //look for something unfilled in the second assignment
+ letter=learningSeq(SECONDLAY);
+ // test success
+ if (letter==0)
+ // if nothing is there we can check for symbols
+ {
+/*
+ //sybols and numbers
+ for(int address=66;address<127;address+=2)
+ {
+ if(oneCheck(address,0)==0)
+ {
+ return address/2;
+ }
+ //if all of these are assigned letter still be 0
+ }
+ //passing an ultimate "false" or 0 to the main loop
+ learningPhase[1]=true;
+ EEPROM.write(255,1);
+ }
+ }
+ else
+ {
+ //make the first assignments
+ letter=learningSeq(0);
+ if (letter==0)
+ {
+ // if there is nothing there check the second
+ letter=learningSeq(SECONDLAY);
+ // and flag that the first assignment has been done
+ learningPhase[0]=true;
+ EEPROM.write(254, true);
+ }
+ };
+ return letter;
+ }*/
+
+byte learnUser()//simple sub to the original 
+{//for one assignment
+  byte letter=learningSeq(0);
+  if(letter)
   {
-    //look for something unfilled in the second assignment
-    letter=learningSeq(SECONDLAY);
-    // test success
-    if (letter==0)
-      // if nothing is there we can check for symbols
-    {
-      /*
-      //sybols and numbers
-      for(int address=66;address<127;address+=2)
-      {
-        if(oneCheck(address,0)==0)
-        {
-          return address/2;
-        }
-        //if all of these are assigned letter still be 0
-      }*/
-      //passing an ultimate "false" or 0 to the main loop
-      learningPhase[1]=true;
-      EEPROM.write(254,1);
-    }
-    else
-    {
-      return letter;
-    };
+    return letter;
   }
   else
   {
-    //make the first assignments
-    letter=learningSeq(0);
-    if (letter==0)
-    {
-      // if there is nothing there check the second
-      letter=learningSeq(SECONDLAY);
-      // and flag that the first assignment has been done
-      learningPhase[0]=true;
-      EEPROM.write(255, true);
-    }
-    else
+    letter=freqLookup(8,0);
+    if(letter)
     {
       return letter;
-    };
-  };
-}
-
-unsigned int oneCheck(byte letter, byte mod)
-{
-  byte pHold= letter-mod;
-  return word(EEPROM.read(pHold*2), EEPROM.read(pHold*2+1));
+    }
+  }
+  learningPhase[1]=true;
+  EEPROM.write(255, true);
 }
 
 byte learningSeq(byte modifier)
 {
   byte letter;
   //Give most common unassiged letter based on possition in the word
-  if(count[CWORD]<LPLACES)
-  { 
+  if(count[CWORD]<LPLACES)//for the amount of places acounted for
+  { //look up the appropriate letter in the 2d array
     letter=freqLookup(count[CWORD], modifier);
-    if (letter==0)
+    if (letter==0)// in the case they are taken
     {
       letter=freqLookup(8, modifier);
     }
@@ -420,6 +497,12 @@ byte freqLookup(int place, byte modifier)
     }
   }
   return 0;
+}
+
+unsigned int oneCheck(byte letter, byte mod)
+{
+  byte pHold= letter-mod;
+  return word(EEPROM.read(pHold*2), EEPROM.read(pHold*2+1));
 }
 
 //------------------------------------------noise filtering
@@ -582,70 +665,29 @@ int rawInput()
 //!!both cases need work, there is a symantic issue with the number counting
 void yesCase()
 {
-  if(count[METAC]>1)
+  //regular activity 
+  switch(count[YESC])
   {
-    switch(count[METAC])
+  case 0://yes
+    space();
+    break;
+  case 1://yes, yes
+    if(explicitMode==false)
     {
-    case 2://alt-tab//meta, yes..
-      switchWindow(); 
-      //will continue with case 1 unless meta increments
-      return;
-    case 3://2-4 fall through and mean the same thing
-    case 4:
-    case 5:
-      enter();
-      count[METAC]=0;
-      return;
-    }
+      period();
+      break;
+    }//in other words fall through when explicit mode is true
+  case 2://yes, yes, yes
+    enter();
+    break;
+  case 3://yes, yes, yes, yes
+    combo(rctrl,'s');
+    //save();
+    break;
+  default:
+    count[YESC]=0;
+    return;
   }
-  /*else if(count[CSENT]==0 && count[LINEC]==0)//not sure this will work
-    //inactivity case
-  {
-    switch(count[YESC])
-    {
-    case 0:
-      sfill(4, ' ');
-      break;
-    case 1:
-      centerJust();//nothing, yes, yes
-      break;
-    case 2:
-      rightJust();//nothing, yes, yes, yes
-      break;
-    case 3:
-      enter();//nothing, yes, yes, yes, yes
-      break;
-    default:
-      count[YESC]=0;
-      return;
-    }
-  }*/
-  else
-  {
-    //regular activity 
-    switch(count[YESC])
-    {
-    case 0://yes
-      space();
-      break;
-    case 1://yes, yes
-      if(explicitMode==false)
-      {
-        period();
-        break;
-      }//in other words fall through when explicit mode is true
-    case 2://yes, yes, yes
-      enter();
-      break;
-    case 3://yes, yes, yes, yes
-      combo(rctrl,'s');
-      //save();
-      break;
-    default:
-      count[YESC]=0;
-      return;
-    }
-  };
   count[YESC]++;
 }
 //###################################META/MAGIC
@@ -680,22 +722,23 @@ void metaCase()//or "magic" keys
 //#####################################NO
 void noCase()
 {
-  if(count[METAC])
-  {
-    //closeProgram();//alt-f4//meta, no
-    combo(lalt, f4);//CLOSE# close window
-  }
+  /*if(count[METAC])
+   {
+   //closeProgram();//alt-f4//meta, no
+   combo(lalt, f4);//CLOSE# close window
+   }
   /*else if(count[CSENT]==0 && count[LINEC]==0)//nothing case?
-  {
-    //back();//alt-left//nothing, no..
-    combo(lalt, left);//BACK#browser back
-  }*/
-  else if(count[YESC])
+   {
+   //back();//alt-left//nothing, no..
+   combo(lalt, left);//BACK#browser back
+   }*/
+  //else 
+  if(count[YESC])
   {
     switch(count[YESC])
     {
     case 1:
-      autofill();//or after word//yes, no
+      autoFill();//or after word//yes, no
       //whether autofill or spell correct is used depends
       //on the amount of letters in the buffer
       break;
@@ -731,20 +774,77 @@ void noCase()
   };
   count[NOC]++;
 }
-//##########################yes no functions
-//###########################################formating functions
-void autofill()
+//#########################################Auto suggest
+void autoSug()
 {
+  if(count[CWORD]==1)
+  {
+    for(int i=0;i<25;i++)
+    {//for everthing in the list
+      strcpy_P(buffer, (char*)pgm_read_word(&(oneCombos[i])));
+      if(letterBuffer[0]==buffer[0])
+      {
+        Keyboard.print(" ");
+        sugSize=1;
+        buffPrint();
+        sKey(sugSize, left);
+        return;
+      }
+    }
+    //no suggestion case here;
+    sugSize=0;
+  }
+  //if(count[CWORD]==1)//draw from two combo list
 }
+void autoFill()
+{
+  sKey(sugSize, right);
+  sKey(sugSize+count[LWORD],BACK);
+  count[LINEC]+=sugSize;
+  count[LINEC]-=count[LWORD];
+  count[CSENT]+=sugSize;
+  count[CSENT]-=count[LWORD];
+  count[LWORD]=sugSize;
+  buffPrint();
+  Keyboard.write(' ');
+}
+
+void buffPrint()
+{
+  for(byte j=0;j<14;j++)
+  {
+    if(buffer[j])
+    {
+      Keyboard.write(buffer[j]);
+      sugSize++;
+    }
+    else
+    {
+      return;
+    };
+  }
+}
+
+void cleanSug()
+{
+  buffer[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  //clear the buffer?
+  sKey(sugSize,right);
+  sKey(sugSize,BACK);
+  //clear the suggestion
+  sugSize=0;
+}
+//###########################################formating functions
 void backSpace()
 {
   sKey(1,BACK);
-  countChange(-1);
   //pronoun case
-  if(count[CWORD]==0 && letterBuffer[0]>96)
+  if(count[CWORD]==1 && letterBuffer[0]>96)
   {
-    printLetter(letterBuffer[0]-32);
+    Keyboard.write(letterBuffer[0]-32);
+    return;
   }
+  countChange(-1);
 }
 void backlast(byte last)
 {
@@ -921,12 +1021,6 @@ void paulsMacro()
   // open mint's text editor
   delay(REACT);
   Keyboard.println(  );
-  Keyboard.press(lalt);
-  delay(REACT);
-  Keyboard.press(tab);
-  //change window focus
-  delay(REACT);
-  Keyboard.releaseAll();
 }
 //-----------------------------------------------------------------------session related functions
 //------------------------------------clear EEPROM
@@ -956,3 +1050,13 @@ boolean session(int address, byte code)
     // true, ie do things unique to an unestablished session 
   };
 }
+//misc
+void wait()
+{
+  while(digitalRead(buttons[0])==HIGH)
+  {
+    // waits for input to prompt yes and no
+    ;
+  }
+}
+
