@@ -11,3 +11,18 @@ Secondary Goals
 provide a haptic form of signalling to the user to receive messages and suggestions.
 Habit recognition as a secondary factor for computer access security, In combination with passwords
 
+Copy notice
+ JesterType- a funny way to use an arduino to type with gestures
+ Copyright (c) 2012-2013 Paul C Beaudet <inof8or@gmail.com>
+ This program is free software; 
+ you can redistribute it and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; version 2 of the License
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program;
+if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
