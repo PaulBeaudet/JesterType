@@ -8,14 +8,14 @@
  This program is free software; 
  you can redistribute it and/or modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; version 2 of the License
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with this program;
-if not, write to the Free Software Foundation, Inc.,
-59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ 
+ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ See the GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License along with this program;
+ if not, write to the Free Software Foundation, Inc.,
+ 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  ##############################################################################
  
  Build for the Arduino Micro, Leonardo or Usb Lilypad (ATMEGA32u4) 
@@ -2804,28 +2804,28 @@ prog_char commonLetters[8][FREQ] PROGMEM=
 //the eighth place accounts for uncommon letters
 {
   {
-    't','a','s','h','w','i','o','b','m','f','c','l','d'                        }
+    't','a','s','h','w','i','o','b','m','f','c','l','d'                                }
   ,
   {
-    'e','h','o','a','n','i','f','r','u','t','l','c','d'                        }
+    'e','h','o','a','n','i','f','r','u','t','l','c','d'                                }
   ,
   {
-    'e','t','a','i','o','n','r','h','s','d','l','c','u'                        }
+    'e','t','a','i','o','n','r','h','s','d','l','c','u'                                }
   ,
   {
-    'e','t','a','o','i','n','s','h','r','d','l','c','u'                        }
+    'e','t','a','o','i','n','s','h','r','d','l','c','u'                                }
   ,
   {
-    'e','r','i','o','t','n','s','a','d','l','h','c','u'                        }
+    'e','r','i','o','t','n','s','a','d','l','h','c','u'                                }
   ,
   {
-    'e','t','a','r','i','n','s','h','o','d','l','c','u'                        }
+    'e','t','a','r','i','n','s','h','o','d','l','c','u'                                }
   ,
   {
-    'e','t','a','d','i','n','s','h','r','o','l','c','u'                        }
+    'e','t','a','d','i','n','s','h','r','o','l','c','u'                                }
   ,
   {
-    'm','f','p','g','w','y','b','v','k','x','j','q','z'                        }
+    'm','f','p','g','w','y','b','v','k','x','j','q','z'                                }
 };
 //modifiers are assign as variables to pass to functions
 prog_char supeRight= KEY_RIGHT_GUI;
@@ -3403,22 +3403,37 @@ void noCase()
 //#########################################Auto suggest
 void autoSug()
 {
-  if(count[CWORD]==1)
+  static word comboIndex[]={
+    0,25,225,1348      };
+
+  if (count[CWORD] && count[CWORD]<4)
   {
-    for(int i=0;i<25;i++)
+    for(word i=comboIndex[count[CWORD]-1];i<comboIndex[count[CWORD]];i++)
     {//for everthing in the list
       strcpy_P(buffer, (char*)pgm_read_word(&(oneCombos[i])));
-      if(letterBuffer[0]==buffer[0])
+      for(word l=0;l<count[CWORD];l++)
       {
-        Keyboard.print(" ");
-        sugSize=1;
-        buffPrint();
-        sKey(sugSize, left);
-        return;
+        if(letterBuffer[l]==buffer[l])
+        {
+          if(l==count[CWORD]-1)
+          {
+            Keyboard.print(" ");
+            sugSize=1;
+            buffPrint();
+            sKey(sugSize, left);
+            return;
+          }
+          else{
+            continue;          
+          };
+        }
+        else{
+          break;        
+        };
       }
+      //no suggestion case here;
+      sugSize=0;
     }
-    //no suggestion case here;
-    sugSize=0;
   }
   //if(count[CWORD]==1)//draw from two combo list
 }
@@ -3685,5 +3700,9 @@ void wait()
     ;
   }
 }
+
+
+
+
 
 
