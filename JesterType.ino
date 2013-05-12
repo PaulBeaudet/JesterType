@@ -66,8 +66,8 @@ byte count[7]={
 char lastLetter;//holds the last letter
 char letterBuffer[14]={
   0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-//holds up to 8 letters for autofill fucntions
-byte sugSize=0;
+//holds  letters for autofill functions
+byte sugSize=0;//defines the size of the suggestion
 //--condition chords for automated responses
 boolean rJustify=false;
 boolean cJustify=false;
@@ -2796,36 +2796,38 @@ PROGMEM const char *oneCombos[] =
   str1346,
   str1347,
 };
+word comboIndex[]={
+  0,25,225,1348      }; //index reduces iterations
 
-char buffer[20];
+char buffer[15];
 //large enough for the largest string it must hold
 //###frequencies 
 prog_char commonLetters[8][FREQ] PROGMEM=
 //the eighth place accounts for uncommon letters
 {
   {
-    't','a','s','h','w','i','o','b','m','f','c','l','d'                                }
+    't','a','s','h','w','i','o','b','m','f','c','l','d'                                      }
   ,
   {
-    'e','h','o','a','n','i','f','r','u','t','l','c','d'                                }
+    'e','h','o','a','n','i','f','r','u','t','l','c','d'                                      }
   ,
   {
-    'e','t','a','i','o','n','r','h','s','d','l','c','u'                                }
+    'e','t','a','i','o','n','r','h','s','d','l','c','u'                                      }
   ,
   {
-    'e','t','a','o','i','n','s','h','r','d','l','c','u'                                }
+    'e','t','a','o','i','n','s','h','r','d','l','c','u'                                      }
   ,
   {
-    'e','r','i','o','t','n','s','a','d','l','h','c','u'                                }
+    'e','r','i','o','t','n','s','a','d','l','h','c','u'                                      }
   ,
   {
-    'e','t','a','r','i','n','s','h','o','d','l','c','u'                                }
+    'e','t','a','r','i','n','s','h','o','d','l','c','u'                                      }
   ,
   {
-    'e','t','a','d','i','n','s','h','r','o','l','c','u'                                }
+    'e','t','a','d','i','n','s','h','r','o','l','c','u'                                      }
   ,
   {
-    'm','f','p','g','w','y','b','v','k','x','j','q','z'                                }
+    'm','f','p','g','w','y','b','v','k','x','j','q','z'                                      }
 };
 //modifiers are assign as variables to pass to functions
 prog_char supeRight= KEY_RIGHT_GUI;
@@ -2952,7 +2954,7 @@ void loop()
     }
     if(letteR == 0 && learningPhase[1])
     {
-      // !! filter currently finds minimal differance assigned chord
+      // !! filter currently finds minimal differance from an assigned chord
       //learningDone=true;
       letteR= filter(chordValue);//just returns # to represent noise
     }
@@ -2990,7 +2992,6 @@ void letterWrite(byte letter, word chordValue, byte modifier)
 }
 
 //Checking
-
 byte check(word chordValue)
 {
   for(int address=194;address<246;address+=2)
@@ -3019,50 +3020,8 @@ byte check(word chordValue)
   //no assignments made for given cord, return 0 or false
   return 0;
 }
-
 //------------------------------------------------------------------------learning function 
-/*
-byte learnUser()//!!symantically a misnomer as of current, better discribes intention
- {
- byte letter=0;
- if(learningPhase[0])//if the first assignment has been made
- {
- //look for something unfilled in the second assignment
- letter=learningSeq(SECONDLAY);
- // test success
- if (letter==0)
- // if nothing is there we can check for symbols
- {
-/*
- //sybols and numbers
- for(int address=66;address<127;address+=2)
- {
- if(oneCheck(address,0)==0)
- {
- return address/2;
- }
- //if all of these are assigned letter still be 0
- }
- //passing an ultimate "false" or 0 to the main loop
- learningPhase[1]=true;
- EEPROM.write(255,1);
- }
- }
- else
- {
- //make the first assignments
- letter=learningSeq(0);
- if (letter==0)
- {
- // if there is nothing there check the second
- letter=learningSeq(SECONDLAY);
- // and flag that the first assignment has been done
- learningPhase[0]=true;
- EEPROM.write(254, true);
- }
- };
- return letter;
- }*/
+//commit 1b3666ec7428a21a0a0f3eb8e5620b1c7ee8dfb3 has commited out previous learner
 
 byte learnUser()//simple sub to the original 
 {//for one assignment
@@ -3125,7 +3084,38 @@ byte freqLookup(int place, byte modifier)
   return 0;
 }
 
-unsigned int oneCheck(byte letter, byte mod)
+byte likelyLetter()//#################
+{
+  for(word i=comboIndex[count[CWORD]];i<comboIndex[count[CWORD]+1];i++)
+  {//for everthing in the appropriate part of the list
+    strcpy_P(buffer, (char*)pgm_read_word(&(oneCombos[i])));
+    //read the string to the buffer
+    //!! needs to check by previous letters
+    if (count[CWORD])
+    {
+      for(word j=0;j<count[CWORD];j++)
+      {
+        if(buffer[j]==letterBuffer[j])
+        {
+          if(count[CWORD]==j-1)//??
+          {
+            return buffer[count[CWORD]+1]
+          } 
+        }
+        else
+        {
+          break;
+        };
+      }
+    }
+    else if (oneCheck(buffer[0],0)==0)
+    {
+      return buffer[0];
+    }
+  }
+}
+
+word oneCheck(byte letter, byte mod)
 {
   byte pHold= letter-mod;
   return word(EEPROM.read(pHold*2), EEPROM.read(pHold*2+1));
@@ -3134,15 +3124,15 @@ unsigned int oneCheck(byte letter, byte mod)
 //------------------------------------------noise filtering
 byte filter(word noise)
 {
-  unsigned int correctToValue=9;
+  word correctToValue=9;//redundant?
   //cant be nine so if it prints this something is wrong
   int lowPoint=15;
   for(int address=194;address<246;address+=2)
   {
-    unsigned int largerNum;
-    unsigned int compare=word(EEPROM.read(address), EEPROM.read(address+1));
-    unsigned int sComp=compare; //temporary second comparison
-    unsigned int fComp=noise; //temp first comparison
+    word largerNum;
+    word compare=word(EEPROM.read(address), EEPROM.read(address+1));
+    word sComp=compare; //temporary second comparison
+    word fComp=noise; //temp first comparison
     int pointCompare=0;
     if(fComp>sComp)
     {
@@ -3402,40 +3392,39 @@ void noCase()
 }
 //#########################################Auto suggest
 void autoSug()
-{
-  static word comboIndex[]={
-    0,25,225,1348      };
-
+{//makes a suggestion based on typed letters
   if (count[CWORD] && count[CWORD]<4)
-  {
+  {//given the typed letters meet the list capibilities 
     for(word i=comboIndex[count[CWORD]-1];i<comboIndex[count[CWORD]];i++)
     {//for everthing in the list
       strcpy_P(buffer, (char*)pgm_read_word(&(oneCombos[i])));
+      //read the called string number into the buffer
       for(word l=0;l<count[CWORD];l++)
+        //for the letters currently typed
       {
-        if(letterBuffer[l]==buffer[l])
+        if(letterBuffer[l]==buffer[l])//compare each letter
         {
-          if(l==count[CWORD]-1)
+          if(l==count[CWORD]-1)//if this is the last comparable letter
           {
+            //make the suggestion
             Keyboard.print(" ");
             sugSize=1;
             buffPrint();
             sKey(sugSize, left);
-            return;
+            return;//stop looking for suggestions
           }
           else{
-            continue;          
-          };
+            continue;// try the next letter          
+          };//redundant?
         }
-        else{
-          break;        
+        else{//no match its not this word
+          break;//short-curcuit        
         };
       }
       //no suggestion case here;
       sugSize=0;
     }
   }
-  //if(count[CWORD]==1)//draw from two combo list
 }
 void autoFill()
 {
@@ -3700,6 +3689,9 @@ void wait()
     ;
   }
 }
+
+
+
 
 
 
