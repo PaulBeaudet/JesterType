@@ -63,8 +63,9 @@ byte count[7]={
 //KEY: 0=line return/printed, 1=word, 2=sentence,    
 //3=last word, 4=last sentence, 5=yes, 6=no
 
-char lastLetter;//holds the last letter
-char letterBuffer[14]={
+char lastLetter;//holds the last letter !! is this being used??
+#define BUFFSIZE 14
+char letterBuffer[BUFFSIZE]={
   0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 //holds  letters for autofill functions
 byte sugSize=0;//defines the size of the suggestion
@@ -2806,28 +2807,28 @@ prog_char commonLetters[8][FREQ] PROGMEM=
 //the eighth place accounts for uncommon letters
 {
   {
-    't','a','s','h','w','i','o','b','m','f','c','l','d'                                      }
+    't','a','s','h','w','i','o','b','m','f','c','l','d'                                          }
   ,
   {
-    'e','h','o','a','n','i','f','r','u','t','l','c','d'                                      }
+    'e','h','o','a','n','i','f','r','u','t','l','c','d'                                          }
   ,
   {
-    'e','t','a','i','o','n','r','h','s','d','l','c','u'                                      }
+    'e','t','a','i','o','n','r','h','s','d','l','c','u'                                          }
   ,
   {
-    'e','t','a','o','i','n','s','h','r','d','l','c','u'                                      }
+    'e','t','a','o','i','n','s','h','r','d','l','c','u'                                          }
   ,
   {
-    'e','r','i','o','t','n','s','a','d','l','h','c','u'                                      }
+    'e','r','i','o','t','n','s','a','d','l','h','c','u'                                          }
   ,
   {
-    'e','t','a','r','i','n','s','h','o','d','l','c','u'                                      }
+    'e','t','a','r','i','n','s','h','o','d','l','c','u'                                          }
   ,
   {
-    'e','t','a','d','i','n','s','h','r','o','l','c','u'                                      }
+    'e','t','a','d','i','n','s','h','r','o','l','c','u'                                          }
   ,
   {
-    'm','f','p','g','w','y','b','v','k','x','j','q','z'                                      }
+    'm','f','p','g','w','y','b','v','k','x','j','q','z'                                          }
 };
 //modifiers are assign as variables to pass to functions
 prog_char supeRight= KEY_RIGHT_GUI;
@@ -2908,7 +2909,7 @@ void loop()
   {
     //linesize limiter
     if(count[LINEC]>LINESIZE)
-    {
+    {//one the line size limit is reached
       /*if(rJustify)
        {
        backTxt();
@@ -2916,9 +2917,13 @@ void loop()
        else
        {*/
       if(count[CWORD])
-      {  
+      {//given there are printed letters 
         sKey(count[CWORD],left);
+        //move the cursor to the left of the current word prepping it
+        //to be pushed to the next line thus keeping word whole
       }
+      //regardless press enter and add the current word count
+      //to the line in case a word was in progress
       sKey(1, RTN);
       count[LINEC]=count[CWORD];
       //};
@@ -2959,9 +2964,9 @@ void loop()
       letteR= filter(chordValue);//just returns # to represent noise
     }
     //print the result
-    cleanSug();
-    printLetter(letteR);
-    autoSug();
+    cleanSug();//clear the old suggestion before printing the next letter
+    printLetter(letteR);//print the current letter
+    autoSug();//make a suggestion based on the current buffer
   }
 }
 //--------------------------------------------------------------------------end main loop
@@ -3084,41 +3089,47 @@ byte freqLookup(int place, byte modifier)
   return 0;
 }
 
-byte likelyLetter()//#################
-{
+byte likelyLetter()//################# future addition
+{//suggest a letter based on the common word list
   for(word i=comboIndex[count[CWORD]];i<comboIndex[count[CWORD]+1];i++)
   {//for everthing in the appropriate part of the list
     strcpy_P(buffer, (char*)pgm_read_word(&(oneCombos[i])));
     //read the string to the buffer
-    //!! needs to check by previous letters
-    if (count[CWORD])
-    {
-      for(word j=0;j<count[CWORD];j++)
-      {
+    if(count[CWORD])
+    {//if letters have been printed 
+    //eg count[CWORD]=1 then the first letter is in letter buffer
+      for(byte j=0;j<count[CWORD];j++)
+      {//for the letters in buffer
         if(buffer[j]==letterBuffer[j])
-        {
-          if(count[CWORD]==j-1)//??
-          {
-            return buffer[count[CWORD]+1]
+        {//if they match the typed letters
+          if(count[CWORD]==j+1 && onecheck(buffer[count[CWORD]])==0)
+          {//and they all match by the last letter to check
+            return buffer[count[CWORD]]
+            //basically if we are on count 1 it returns the second letter
+           //position one in the buffer array 
           } 
         }
-        else
-        {
+        else// if the letters dont match
+        {//short curcuit to the next word in list
           break;
         };
       }
     }
-    else if (oneCheck(buffer[0],0)==0)
-    {
-      return buffer[0];
-    }
-  }
+    else//given that this is the first letter to guess
+    {//short curcuit by returning the most common unnassigned first letter
+      return freqLookup(0,0);//lookup the most frequent first letter
+      //will return 0 when first assignment is done
+    };
+  }//given the word list is exsusted of options
+  return 0;//to signify that the noise filter might judge better
 }
 
 word oneCheck(byte letter, byte mod)
-{
+{//checks if the letter has been assigned in eeprom
   byte pHold= letter-mod;
   return word(EEPROM.read(pHold*2), EEPROM.read(pHold*2+1));
+  //!!maybe this should be modified to check based on assignment phase
+  //thus eliminating the modification argument
 }
 
 //------------------------------------------noise filtering
@@ -3128,7 +3139,7 @@ byte filter(word noise)
   //cant be nine so if it prints this something is wrong
   int lowPoint=15;
   for(int address=194;address<246;address+=2)
-  {
+  {//compare everything in the first assignment
     word largerNum;
     word compare=word(EEPROM.read(address), EEPROM.read(address+1));
     word sComp=compare; //temporary second comparison
@@ -3393,7 +3404,7 @@ void noCase()
 //#########################################Auto suggest
 void autoSug()
 {//makes a suggestion based on typed letters
-  if (count[CWORD] && count[CWORD]<4)
+  if (count[CWORD] && count[CWORD]<4)//1,2,3
   {//given the typed letters meet the list capibilities 
     for(word i=comboIndex[count[CWORD]-1];i<comboIndex[count[CWORD]];i++)
     {//for everthing in the list
@@ -3413,9 +3424,6 @@ void autoSug()
             sKey(sugSize, left);
             return;//stop looking for suggestions
           }
-          else{
-            continue;// try the next letter          
-          };//redundant?
         }
         else{//no match its not this word
           break;//short-curcuit        
@@ -3428,28 +3436,28 @@ void autoSug()
 }
 void autoFill()
 {
-  sKey(sugSize, right);
-  sKey(sugSize+count[LWORD],BACK);
-  count[LINEC]+=sugSize;
-  count[LINEC]-=count[LWORD];
-  count[CSENT]+=sugSize;
-  count[CSENT]-=count[LWORD];
-  count[LWORD]=sugSize;
-  buffPrint();
-  Keyboard.write(' ');
+  sKey(sugSize, right);// move the currsor right
+  sKey(sugSize+count[LWORD],BACK);// delete previous suggestion
+  count[LINEC]+=sugSize; // add the suggestion size to the line count
+  count[LINEC]-=count[LWORD];//subtract the unused word
+  count[CSENT]+=sugSize; //add the suggestion to current sentance count
+  count[CSENT]-=count[LWORD];//subtract the unused word
+  count[LWORD]=sugSize;//the suggestion is now the size of the last word
+  buffPrint();//print the word
+  Keyboard.write(' ');//add a space !! is this accounted for??
 }
 
-void buffPrint()
+void buffPrint()//can you just keyboard write buffer?
 {
-  for(byte j=0;j<14;j++)
+  for(byte i=0;i<BUFFSIZE;i++)
   {
-    if(buffer[j])
+    if(buffer[i])
     {
-      Keyboard.write(buffer[j]);
-      sugSize++;
+      Keyboard.write(buffer[i]);//write the letter
+      sugSize++;//compile the size of the suggestion
     }
     else
-    {
+    {//when the last character is reached
       return;
     };
   }
@@ -3457,12 +3465,10 @@ void buffPrint()
 
 void cleanSug()
 {
-  buffer[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-  //clear the buffer?
-  sKey(sugSize,right);
-  sKey(sugSize,BACK);
-  //clear the suggestion
-  sugSize=0;
+  buffer[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];//reset buffer
+  sKey(sugSize,right);//move cursor
+  sKey(sugSize,BACK);//remove suggestion
+  sugSize=0;//set its size to zero !!unessisary??
 }
 //###########################################formating functions
 void backSpace()
@@ -3689,12 +3695,6 @@ void wait()
     ;
   }
 }
-
-
-
-
-
-
 
 
 
