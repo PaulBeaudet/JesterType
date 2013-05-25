@@ -1,5 +1,6 @@
 #include<avr/pgmspace.h>
 #include <EEPROM.h>
+//#include <MemoryFree.h>//http://playground.arduino.cc/Code/AvailableMemory
 //
 /*
  ###########COPY NOTICE######################################################
@@ -31,7 +32,7 @@
 //eeprom session key, change to start over (if forgot yes/no assignment
 //or are testing the learning process)
 //############
-#define KEY 5
+#define KEY 6
 //############
 //-----------------------------------------------------------------define buttons
 byte buttons[]=
@@ -75,13 +76,13 @@ word yes;
 //word meta;
 
 //error correction and alternate assignments
-#define ONSECOND 0 //location in EEPROM 254
-#define DONELEARNING 1 //location in EEPROM 255
-#define NUMBERLEARNED 256 //location in EEPROM
-boolean learningPhase[2];
+#define ONSECOND 254 //location in EEPROM 254
+#define DONELEARNING 255 //location in EEPROM 255
+//3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
+#define LETTERSLEARNED 256 //location in EEPROM
 // the modifier key to the second assignment
 #define SECONDLAY 96
-// it define the amount of offset from the first assignment in eeprom
+// 96 defines the amount of offset from the first assignment in eeprom
 
 //modifiers are assign as variables to pass to functions
 //!!Keyboard object specific 
@@ -147,10 +148,6 @@ void setup()
   no = word(EEPROM.read(62), EEPROM.read(63));
   //meta= word(EEPROM.read(64), EEPROM.read(65));
   //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
-  learningPhase[0] = EEPROM.read(254);//phase 1 = ONSECOND, used within learnuser()
-  learningPhase[1]= EEPROM.read(255);//phase 2 = DONELEARNING
-  //ascertain where we are in the learning process
-  //3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
 }
 //-----------------------------------------------------------------------------begin main loop
 //KEY- following"//:" = file/tab dependency
@@ -205,7 +202,7 @@ void loop()
     {//than print it
       printLetter(letter);//:KeyboardFunctions
     }
-    else if(learningPhase[DONELEARNING])//If the learning is done
+    else if(EEPROM.read(DONELEARNING))//If the learning is done
     {//but it wasn't in the assignment the put it through the filter
       // !! filter currently finds minimal differance from an assigned chord
       printLetter(filter(chordValue));//:noiseFiltering
@@ -216,6 +213,7 @@ void loop()
       //print a newly guessed letter
     };
     autoSug();//make a suggestion based on the current letterBuffer
+    //Keyboard.print(freeMemory());//test mem usage: last test:2288
   }
 }
 //--------------------------------------------------------------------------end main loop

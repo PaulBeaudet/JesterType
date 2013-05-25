@@ -6,14 +6,14 @@
 
 //--------------------------------------returning the chord value
 //return the raw value, monitor the buttons in a time window
-unsigned int getValue()
+word getValue()
 {
   boolean basePress=true;
   boolean regularPress=true;
   boolean longPress=true;
-  unsigned int builtChord=0;
-  unsigned int oldChord=RESTING;
-  unsigned int baseChord=RESTING;//assumed inactivity when called
+  word builtChord=0;
+  word oldChord=RESTING;
+  word baseChord=RESTING;//assumed inactivity when called
   unsigned long past=millis()-1;//first millis diff is engineered here to make sure things get on the ball
   int windowCount=0;
   while(windowCount<=WINDOW || getDebouncedState()>RESTING)//gather chordValue with in this time frame
@@ -36,13 +36,13 @@ unsigned int getValue()
       }
       if(regularPress && windowCount > 400)
       {
-        unsigned int temp=baseChord-RESTING;
+        word temp=baseChord-RESTING;
         builtChord+=temp*2;
         regularPress=false;
       }
       if(longPress && windowCount > 750)
       {
-        unsigned int temp=baseChord-RESTING;
+        word temp=baseChord-RESTING;
         builtChord+=temp*3;
         longPress=false;
       }

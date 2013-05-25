@@ -51,8 +51,7 @@ byte learnUser(word chord)//simple sub to the original
       return letter;
     }
   }
-  learningPhase[DONELEARNING]=true;
-  EEPROM.write(255, true);
+  EEPROM.write(DONELEARNING, true);
 }
 
 byte learningSeq(word chord, byte modifier)
