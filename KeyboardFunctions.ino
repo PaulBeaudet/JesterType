@@ -4,6 +4,7 @@
 //!!some of the controlMacro functions need to be moved here
 //to encompass all keyboard functions over the scope of JesterType
 //---------------------------letter printing
+
 void printLetter(byte letterNum)
 {
   if(count[CSENT]==0)
@@ -66,7 +67,6 @@ void combo(char key1, char key2)
   delay(REACT);
   Keyboard.releaseAll();
 }
-
 void combo(char key1, char key2, char key3)
 {
   Keyboard.press(key1);
