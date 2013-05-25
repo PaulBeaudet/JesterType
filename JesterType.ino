@@ -75,13 +75,16 @@ word yes;
 //word meta;
 
 //error correction and alternate assignments
+#define ONSECOND 0 //location in EEPROM 254
+#define DONELEARNING 1 //location in EEPROM 255
+#define NUMBERLEARNED 256 //location in EEPROM
 boolean learningPhase[2];
 // the modifier key to the second assignment
 #define SECONDLAY 96
 // it define the amount of offset from the first assignment in eeprom
 
 //modifiers are assign as variables to pass to functions
-//Keyboard object specific 
+//!!Keyboard object specific 
 prog_char supeRight= KEY_RIGHT_GUI;
 prog_char lctrl = KEY_LEFT_CTRL;
 prog_char rctrl = KEY_RIGHT_CTRL;
@@ -122,21 +125,21 @@ void setup()
   //--check if this arduino's eeprom has been used for something else if it has clear the eeprom
   if (session(512, KEY))
   {
-    clearPROM(0, 256);
+    clearPROM(0, 257);
     //clear possible old assignments
     //wait();
     //paulsMacro();// this opens a text editor for testing, comment this out
     wait();//starts when a button is pressed
     delay(REACT);
     Keyboard.print("Yes?");
-    letterWrite(30, getValue(),0);
+    assign(30, getValue(),0);
     sKey(4, BACK);
     Keyboard.print("no?");
-    letterWrite(31, getValue(),0);
+    assign(31, getValue(),0);
     sKey(3, BACK);
     /*Keyboard.print("meta?");
-    letterWrite(32, getValue(),0);
-    sKey(5, BACK);*/
+     assign(32, getValue(),0);
+     sKey(5, BACK);*/
     //promt and assign for yes/no
   }
 
@@ -144,9 +147,10 @@ void setup()
   no = word(EEPROM.read(62), EEPROM.read(63));
   //meta= word(EEPROM.read(64), EEPROM.read(65));
   //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
-  learningPhase[0] = EEPROM.read(254);
-  learningPhase[1]= EEPROM.read(255);
+  learningPhase[0] = EEPROM.read(254);//phase 1 = ONSECOND, used within learnuser()
+  learningPhase[1]= EEPROM.read(255);//phase 2 = DONELEARNING
   //ascertain where we are in the learning process
+  //3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
 }
 //-----------------------------------------------------------------------------begin main loop
 //KEY- following"//:" = file/tab dependency
@@ -189,31 +193,30 @@ void loop()
       return;//restart the loop
     }
     /*else if(chordValue==meta)
-    {
-      metaCase();
-      return;
-    }*/
+     {
+     metaCase();
+     return;
+     }*/
     //-------------------------------letter related steps
     //figure out if the chord is a letter that has an assignment in eeprom
-    byte letter=check(chordValue);//:Assignments
-    //if no assignment take an educational guess and make one
-    if(letter == 0)
-    {
-      letter=learnUser();//:learing
-      //receive a letter from the learning algorithm
-      assign(letter, chordValue);//:Assignments
-      // assign that letter to the kepmaping
-    }
-    if(letter == 0 && learningPhase[1])
-    {
-      // !! filter currently finds minimal differance from an assigned chord
-      //learningDone=true;
-      letter= filter(chordValue);//:noiseFiltering
-    }
-    //print the result
     cleanSug();//clear the old suggestion before printing the next letter
-    printLetter(letter);//print the current letter//:KeyboardFunctions
+    byte letter=check(chordValue);//:Assignments
+    if(letter)// if the letter was assigned
+    {//than print it
+      printLetter(letter);//:KeyboardFunctions
+    }
+    else if(learningPhase[DONELEARNING])//If the learning is done
+    {//but it wasn't in the assignment the put it through the filter
+      // !! filter currently finds minimal differance from an assigned chord
+      printLetter(filter(chordValue));//:noiseFiltering
+    }
+    else//learnig still needs to be done
+    {
+      printLetter(learnUser(chordValue));//:learing
+      //print a newly guessed letter
+    };
     autoSug();//make a suggestion based on the current letterBuffer
   }
 }
 //--------------------------------------------------------------------------end main loop
+

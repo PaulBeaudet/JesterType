@@ -1,28 +1,29 @@
 
 //----------------------------storage fuctions---making assignments
 
-void assign(byte letter, word chordValue)
-{
-  if(learningPhase[0])
+boolean assign(byte letter, word chord, byte modifier)
+{//does the assignment and returns true
+  if(letter)
   {
-    letterWrite(letter, chordValue,SECONDLAY);
+    byte hold = letter-modifier;
+    if(word(EEPROM.read(hold*2), EEPROM.read(hold*2+1)))
+    {//check if letter has been assigned
+      return false;
+    } //if so short-curcuit 
+    else
+    { //otherwise write word into EEPROM
+      EEPROM.write(hold*2, highByte(chord));
+      delay(5);//!! delays after writes maybe redundent
+      EEPROM.write(hold*2+1, lowByte(chord));
+      delay(5);
+      return true;
+    }
   }
-  else
+  else//if a zero was passed to assign
   {
-    letterWrite(letter, chordValue, 0);
-  };
-  //make the assignment
+    return false;
+  };//so the function know it could not be passed
 
-}
-
-void letterWrite(byte letter, word chordValue, byte modifier)
-{
-  //Writes unsigned ints into EEPROM
-  byte hold = letter-modifier;
-  EEPROM.write(hold*2, highByte(chordValue));
-  delay(5);//!! delays after writes maybe redundent
-  EEPROM.write(hold*2+1, lowByte(chordValue));
-  delay(5);
 }
 
 //Checking
@@ -54,4 +55,7 @@ byte check(word chordValue)
   //no assignments made for given cord, return 0 or false
   return 0;
 }
+
+
+
 

@@ -2713,6 +2713,7 @@ PROGMEM const char *oneCombos[] =
   str1346,
   str1347,
 };
+
 word comboIndex[]={
   0,25,225,1348      }; //index reduces iterations
 
@@ -2720,7 +2721,7 @@ char buffer[15];
 //large enough for the largest string it must hold
 
 //#########################################Functions involving wordlist
-byte likelyLetter()//#################!! future addition
+byte likelyLetter(word chord)//#################!! future addition
 {//suggest a letter based on the common word list
   for(word i=comboIndex[count[CWORD]];i<comboIndex[count[CWORD]+1];i++)
   {//for everthing in the appropriate part of the list
@@ -2731,10 +2732,10 @@ byte likelyLetter()//#################!! future addition
     //eg count[CWORD]=1 then the first letter is in letter buffer
       for(byte j=0;j<count[CWORD];j++)
       {//for the letters in buffer
-        if(buffer[j]==letterBuffer[j])
-        {//if they match the typed letters
-          if(count[CWORD]==j+1 && oneCheck(buffer[count[CWORD]],0)==0)
-          {//and they all match by the last letter to check
+        if(buffer[j]==letterBuffer[j] || letterBuffer[j]+32==buffer[j])
+        {//if they match the typed letters, lowercase or capital
+          if(count[CWORD]==j+1 && assign(buffer[count[CWORD]],chord,0))
+          {//and they all match by the last letter to check//
             return buffer[count[CWORD]];
             //basically if we are on count 1 it returns the second letter
            //position one in the buffer array 
@@ -2748,11 +2749,10 @@ byte likelyLetter()//#################!! future addition
     }
     else//given that this is the first letter to guess
     {//short curcuit by returning the most common unnassigned first letter
-      return freqLookup(0,0);//lookup the most frequent first letter
+      return freqLookup(0,chord,0);//lookup the most frequent first letter
       //will return 0 when first assignment is done
     };
   }//given the word list is exsusted of options
-  return 0;//to signify that the noise filter might judge better
 }
 //#########################################Auto suggest
 void autoSug()

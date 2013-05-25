@@ -36,58 +36,58 @@ prog_char commonLetters[8][FREQ] PROGMEM=
 //------------------------------------------------------------------------learning functions 
 //commit 1b3666ec7428a21a0a0f3eb8e5620b1c7ee8dfb3 has commited out previous learner
 
-byte learnUser()//simple sub to the original 
+byte learnUser(word chord)//simple sub to the original 
 {//for one assignment
-  byte letter=learningSeq(0);
+  byte letter=learningSeq(chord, 0);
   if(letter)
   {
     return letter;
   }
   else
   {
-    letter=freqLookup(8,0);
+    letter=freqLookup(8, chord, 0);
     if(letter)
     {
       return letter;
     }
   }
-  learningPhase[1]=true;
+  learningPhase[DONELEARNING]=true;
   EEPROM.write(255, true);
 }
 
-byte learningSeq(byte modifier)
+byte learningSeq(word chord, byte modifier)
 {
   byte letter;
   //Give most common unassiged letter based on possition in the word
   if(count[CWORD]<LPLACES)//for the amount of places acounted for
   { //look up the appropriate letter in the 2d array
-    letter=freqLookup(count[CWORD], modifier);
+    letter=freqLookup(count[CWORD], chord, modifier);
     if (letter==0)// in the case they are taken
     {
-      letter=freqLookup(8, modifier);
+      letter=freqLookup(8, chord, modifier);
     }
     return letter;
   }
   else
   {
-    letter=freqLookup(2, modifier);
+    letter=freqLookup(2, chord, modifier);
     if (letter==0)
     {
-      letter=freqLookup(8, modifier);
+      letter=freqLookup(8, chord, modifier);
     }
     return letter;
   };
   return 0;
 }
 
-byte freqLookup(int place, byte modifier)
+byte freqLookup(int place, word chord, byte modifier)
 {
   byte letterNumber;
   for (int freq=0; freq<FREQ; freq++)
     //interate frequencies
   {
     letterNumber= pgm_read_byte(&commonLetters[place][freq]);
-    if (oneCheck(letterNumber, modifier)==0)
+    if (assign(letterNumber, chord, modifier))
       //check if the frequency is assigned for the given possition
     {
       return letterNumber;
