@@ -72,7 +72,7 @@ boolean cJustify=false;
 boolean explicitMode=false;
 word no;
 word yes;
-word meta;
+//word meta;
 
 //error correction and alternate assignments
 boolean learningPhase[2];
@@ -81,6 +81,7 @@ boolean learningPhase[2];
 // it define the amount of offset from the first assignment in eeprom
 
 //modifiers are assign as variables to pass to functions
+//Keyboard object specific 
 prog_char supeRight= KEY_RIGHT_GUI;
 prog_char lctrl = KEY_LEFT_CTRL;
 prog_char rctrl = KEY_RIGHT_CTRL;
@@ -133,15 +134,15 @@ void setup()
     Keyboard.print("no?");
     letterWrite(31, getValue(),0);
     sKey(3, BACK);
-    Keyboard.print("meta?");
+    /*Keyboard.print("meta?");
     letterWrite(32, getValue(),0);
-    sKey(5, BACK);
+    sKey(5, BACK);*/
     //promt and assign for yes/no
   }
 
   yes = word(EEPROM.read(60), EEPROM.read(61));
   no = word(EEPROM.read(62), EEPROM.read(63));
-  meta= word(EEPROM.read(64), EEPROM.read(65));
+  //meta= word(EEPROM.read(64), EEPROM.read(65));
   //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
   learningPhase[0] = EEPROM.read(254);
   learningPhase[1]= EEPROM.read(255);
@@ -187,11 +188,11 @@ void loop()
       noCase();
       return;//restart the loop
     }
-    else if(chordValue==meta)
+    /*else if(chordValue==meta)
     {
       metaCase();
       return;
-    }
+    }*/
     //-------------------------------letter related steps
     //figure out if the chord is a letter that has an assignment in eeprom
     byte letter=check(chordValue);//:Assignments

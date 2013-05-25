@@ -31,7 +31,7 @@ void yesCase()
   count[YESC]++;
 }
 //###################################META/MAGIC
-void metaCase()//or "magic" keys
+/*void metaCase()//or "magic" keys
 {
   switch(count[METAC])
   {
@@ -58,7 +58,7 @@ void metaCase()//or "magic" keys
     return;
   }
   count[METAC]++;
-}
+}*/
 //#####################################NO
 void noCase()
 {
@@ -206,7 +206,7 @@ void period()
 }
 
 //########## Meta or Magic functions 
-void switchWindow()
+/*void switchWindow()
 {
   Keyboard.press(lalt);
   Keyboard.press(tab);
@@ -214,4 +214,4 @@ void switchWindow()
   Keyboard.press(tab);
   delay(REACT);
   Keyboard.releaseAll();
-}
+}*/
