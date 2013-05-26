@@ -2798,9 +2798,10 @@ void autoFill()
   count[LWORD]=sugSize;//the suggestion is now the size of the last word
   buffPrint();//print the word
   Keyboard.write(' ');//add a space !! is this accounted for??
-}
+  sugSize=0;//reset suggestion size so that clearSug() 
+}//doest remove correction previous next loop
 
-void buffPrint()//can you just keyboard write buffer?
+void buffPrint()
 {
   for(byte i=0;i<BUFFSIZE;i++)
   {
@@ -2816,7 +2817,7 @@ void buffPrint()//can you just keyboard write buffer?
   }
 }
 
-void cleanSug()
+void cleanSug()//Clear suggestion
 {
   buffer[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];//reset buffer
   sKey(sugSize,right);//move cursor
