@@ -90,41 +90,17 @@ void noCase()
       break;
     }
   }
-  else if(count[CWORD])
-  {
-    backSpace();//no... forSpaces inWord
-  }
   else
-  {
-    if(count[LWORD] && count[LINEC])
-    {
-      count[CSENT]-=count[LWORD];
-      backlast(LWORD);//..no after aWord backspaced
-    }
-    else if (count[CSENT] && count[CSENT]<175 && count[LINEC])
-    {
-      backlast(CSENT);//..no after backword
-      //revert to backspace after sentence removal
-    }
-    else
-    {
-      count[LSENT]=0;
-      backSpace();
-    };
+  {//in all other cases 
+    backSpace();//remove a character
   };
-  count[NOC]++;
+  count[NOC]++;//add to the no count
 }
 
 //###########################################formating functions
 void backSpace()
 {
   sKey(1,BACK);
-  //pronoun case
-  if(count[CWORD]==1 && letterBuffer[0]>96)
-  {
-    Keyboard.write(letterBuffer[0]-32);
-    return;
-  }
   countChange(-1);
 }
 void backlast(byte last)
