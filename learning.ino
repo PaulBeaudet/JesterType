@@ -163,6 +163,10 @@ void autoSug()
             //make the suggestion
             Keyboard.print(" ");
             sugSize=1;
+            if(letterBuffer[0]<91)
+            {//if a capital was printed
+              buffer[0]-=32;//uppercase the buffer
+            }//to match printed output
             buffPrint();
             sKey(sugSize, left);
             return;//stop looking for suggestions
