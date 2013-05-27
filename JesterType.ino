@@ -66,6 +66,8 @@ char lastLetter;//holds the last letter !! is this being used??
 char letterBuffer[BUFFSIZE]={
   0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 //holds  letters for autofill functions
+char buffer[15];//global for wordlist
+//large enough for the largest string it must hold
 byte sugSize=0;//defines the size of the suggestion
 //--condition chords for automated responses
 boolean rJustify=false;
