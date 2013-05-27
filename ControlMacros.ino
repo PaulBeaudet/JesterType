@@ -2,6 +2,20 @@
 //such as space, enter, delete, tab, justify and so on
 //!!have been advised that switch cases are probably a bad idea
 // because they may me interperted differently my differnt MCUs
+void setControls()
+{
+    wait();//starts when a button is pressed
+    delay(REACT);
+    Keyboard.print("Yes?");
+    assign(30, getValue(),0);
+    sKey(4, BACK);
+    Keyboard.print("no?");
+    assign(31, getValue(),0);
+    sKey(3, BACK);
+    /*Keyboard.print("meta?");
+     assign(32, getValue(),0);
+     sKey(5, BACK);*/
+}
 //-------------------------------------------YES CASE
 void yesCase()
 {
@@ -98,6 +112,19 @@ void noCase()
 }
 
 //###########################################formating functions
+void autoLineReturn()
+{//for main loop
+  if(count[LINEC]>LINESIZE)
+    {//one the line size limit is reached
+      if(count[CWORD])
+      {//given there are printed letters 
+        sKey(count[CWORD],left);//:KeyboardFunctions
+        //move the cursor to the left of the current word prepping it
+      }//to be pushed to the next line thus keeping word whole
+      sKey(1, RTN);//regardless press enter and add the current word count
+      count[LINEC]=count[CWORD];//to the line in case a word was in progress
+    }
+}
 void backSpace()
 {
   sKey(1,BACK);
@@ -135,12 +162,6 @@ void rightJust()
   rJustify=true;
   explicitMode=true;
   sfill(LINESIZE-1-count[LINEC], ' ');
-}
-void backTxt()
-{
-  sKey(count[LSENT],left);
-  sKey(count[LSENT],BACK);
-  sKey(count[LSENT],right);
 }
 void enter()
 {

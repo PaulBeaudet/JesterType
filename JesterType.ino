@@ -40,11 +40,9 @@ byte buttons[]=
   2,3,4,5,6
 };
 #define NUMBUTTONS sizeof(buttons)
-
 //----------------------------------------------keyboard definitions
 //yes and no structure counters and flag
-#define LINESIZE 80//just needs to be under 255
-
+#define LINESIZE 80//just needs to be under 255  
 //"count" organized into an array for easy iteration 
 //and function passing
 byte count[7]={
@@ -60,8 +58,6 @@ byte count[7]={
 #define METAC 7 // meta count
 //KEY: 0=line return/printed, 1=word, 2=sentence,    
 //3=last word, 4=last sentence, 5=yes, 6=no
-
-char lastLetter;//holds the last letter !! is this being used??
 #define BUFFSIZE 14
 char letterBuffer[BUFFSIZE]={
   0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -76,7 +72,6 @@ boolean explicitMode=false;
 word no;
 word yes;
 //word meta;
-
 //error correction and alternate assignments
 #define ONSECOND 254 //location in EEPROM 254
 #define DONELEARNING 255 //location in EEPROM 255
@@ -85,7 +80,6 @@ word yes;
 // the modifier key to the second assignment
 #define SECONDLAY 96
 // 96 defines the amount of offset from the first assignment in eeprom
-
 //modifiers are assign as variables to pass to functions
 //!!Keyboard object specific 
 prog_char supeRight= KEY_RIGHT_GUI;
@@ -99,13 +93,13 @@ prog_char up = KEY_UP_ARROW;
 prog_char down = KEY_DOWN_ARROW;
 prog_char right = KEY_RIGHT_ARROW;
 prog_char left = KEY_LEFT_ARROW;
-prog_char HOME = KEY_HOME;
-prog_char END = KEY_END;
-prog_char f2 = KEY_F2;
-prog_char f4 = KEY_F4;
-prog_char f5 = KEY_F5;
-prog_char f10 = KEY_F10;
-prog_char f12 = KEY_F12;
+//prog_char HOME = KEY_HOME;
+//prog_char END = KEY_END;
+//prog_char f2 = KEY_F2;
+//prog_char f4 = KEY_F4;
+//prog_char f5 = KEY_F5;
+//prog_char f10 = KEY_F10;
+//prog_char f12 = KEY_F12;
 prog_char tab = KEY_TAB;
 prog_char RTN = KEY_RETURN;
 #define BACK 178
@@ -128,22 +122,10 @@ void setup()
   //--check if this arduino's eeprom has been used for something else if it has clear the eeprom
   if (session(512, KEY))
   {
-    clearPROM(0, 257);
-    //clear possible old assignments
+    clearPROM(0, 257);//clear possible old assignments
     //wait();
     //paulsMacro();// this opens a text editor for testing, comment this out
-    wait();//starts when a button is pressed
-    delay(REACT);
-    Keyboard.print("Yes?");
-    assign(30, getValue(),0);
-    sKey(4, BACK);
-    Keyboard.print("no?");
-    assign(31, getValue(),0);
-    sKey(3, BACK);
-    /*Keyboard.print("meta?");
-     assign(32, getValue(),0);
-     sKey(5, BACK);*/
-    //promt and assign for yes/no
+    setControls();//promt and assign for yes/no
   }
 
   yes = word(EEPROM.read(60), EEPROM.read(61));
@@ -156,33 +138,12 @@ void setup()
 void loop()
 {
   while(true)//to provide a way to start from step one with a return
-  {
-    //JesterType defined linesize limiter
-    if(count[LINEC]>LINESIZE)
-    {//one the line size limit is reached
-      /*if(rJustify)
-       {
-       backTxt();
-       }
-       else
-       {*/
-      if(count[CWORD])
-      {//given there are printed letters 
-        sKey(count[CWORD],left);//:KeyboardFunctions
-        //move the cursor to the left of the current word prepping it
-        //to be pushed to the next line thus keeping word whole
-      }
-      //regardless press enter and add the current word count
-      //to the line in case a word was in progress
-      sKey(1, RTN);
-      count[LINEC]=count[CWORD];
-      //};
-    }
+  {//JesterType defined linesize limiter
+    autoLineReturn();//:controlMacros
     //get the current button status 
     word chordValue=getValue();//:valueAssement
-    // if yes or no do those and restart the loop//:ControlMacros
     if(chordValue==yes)
-    {
+    {// if yes or no do those and restart the loop//:ControlMacros
       yesCase();
       return;//restart the loop
     }
@@ -197,8 +158,8 @@ void loop()
      return;
      }*/
     //-------------------------------letter related steps
-    //figure out if the chord is a letter that has an assignment in eeprom
     cleanSug();//clear the old suggestion before printing the next letter
+    //figure out if the chord is a letter that has an assignment in eeprom
     byte letter=check(chordValue);//:Assignments
     if(letter)// if the letter was assigned
     {//than print it
