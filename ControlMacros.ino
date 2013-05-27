@@ -34,10 +34,10 @@ void yesCase()
   case 2://yes, yes, yes
     enter();
     break;
-  case 3://yes, yes, yes, yes
+  /*case 3://yes, yes, yes, yes
     combo(rctrl,'s');
     //save();
-    break;
+    break;*/
   default:
     count[YESC]=0;
     return;
