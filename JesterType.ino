@@ -127,7 +127,6 @@ void setup()
     //paulsMacro();// this opens a text editor for testing, comment this out
     setControls();//promt and assign for yes/no
   }
-
   yes = word(EEPROM.read(60), EEPROM.read(61));
   no = word(EEPROM.read(62), EEPROM.read(63));
   //meta= word(EEPROM.read(64), EEPROM.read(65));
@@ -144,12 +143,13 @@ void loop()
     word chordValue=getValue();//:valueAssement
     if(chordValue==yes)
     {// if yes or no do those and restart the loop//:ControlMacros
-      yesCase();
+      yesCase();//:controlMacros
       return;//restart the loop
     }
     else if(chordValue==no)
     {
-      noCase();
+      noCase();//:controlMacros
+      count[YESC]=0;//set yes to 0 in order to define specific cases
       return;//restart the loop
     }
     /*else if(chordValue==meta)
