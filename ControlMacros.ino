@@ -26,67 +26,20 @@ void yesCase()
     space();
     break;
   case 1://yes, yes
-    if(explicitMode==false)
-    {
-      period();
-      break;
-    }//in other words fall through when explicit mode is true
+    period();
+     break;
   case 2://yes, yes, yes
     enter();
     break;
-  /*case 3://yes, yes, yes, yes
-    combo(rctrl,'s');
-    //save();
-    break;*/
   default:
     count[YESC]=0;
     return;
   }
   count[YESC]++;
 }
-//###################################META/MAGIC
-/*void metaCase()//or "magic" keys
-{
-  switch(count[METAC])
-  {
-  case 0:
-    //modeSwitch(); // changes compisitional mode
-    explicitMode= !explicitMode;
-    break;
-  case 1:
-    //search();//open program
-    combo(rctrl, ' ');//SEARCH# bring up synaps, linux
-    break;
-  case 2://places or web search ##!!need to cater to OS
-    //webSearch();//open web site
-    sKey(1, right);//move one to the right for places option
-    break;
-  case 3://files or web search ##!!need to cater to OS
-    //fileSearch();//openlocal file
-    sKey(5, right);//move five to the right for web option
-    break;
-  case 4:
-    combo(rctrl, ' ');//close search 
-  default:
-    count[METAC]=0;
-    return;
-  }
-  count[METAC]++;
-}*/
 //#####################################NO
 void noCase()
 {
-  /*if(count[METAC])
-   {
-   //closeProgram();//alt-f4//meta, no
-   combo(lalt, f4);//CLOSE# close window
-   }
-  /*else if(count[CSENT]==0 && count[LINEC]==0)//nothing case?
-   {
-   //back();//alt-left//nothing, no..
-   combo(lalt, left);//BACK#browser back
-   }*/
-  //else 
   if(count[YESC])
   {
     switch(count[YESC])
@@ -152,37 +105,10 @@ void punctuation(char mark)
   count[YESC]++;
 }
 //############ YES CASES
-void centerJust()
-{
-  count[LSENT]=0;
-  cJustify=true;
-  explicitMode=true;
-  sfill(LINESIZE/2-count[LINEC], ' ');
-}
-void rightJust()
-{
-  count[LSENT]=0;
-  rJustify=true;
-  explicitMode=true;
-  sfill(LINESIZE-1-count[LINEC], ' ');
-}
 void enter()
 {
-  if(rJustify)
-  {
-    count[LSENT]=0;
-    rJustify=false;
-  }
-  if(cJustify)
-  {
-    sKey(count[LSENT],left);
-    sKey(count[LSENT]/2,BACK);
-    sKey(count[LSENT],right);
-    cJustify=false;
-  }
   Keyboard.write(RTN);
   count[LINEC]=0;
-  explicitMode=false;
 }
 void space()
 {
@@ -190,10 +116,6 @@ void space()
   countChange(1);
   count[LWORD]=count[CWORD];
   count[CWORD]=0;
-  if(rJustify || cJustify)
-  {
-    count[LSENT]++;
-  }
 }
 void period()
 {

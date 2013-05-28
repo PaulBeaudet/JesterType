@@ -65,10 +65,6 @@ char letterBuffer[BUFFSIZE]={
 char buffer[15];//global for wordlist
 //large enough for the largest string it must hold
 byte sugSize=0;//defines the size of the suggestion
-//--condition chords for automated responses
-boolean rJustify=false;
-boolean cJustify=false;
-boolean explicitMode=false;
 #define YES 60//first byte address in EEPROM
 #define NO 62//first byte address in EEPROM
 //error correction and alternate assignments

@@ -24,10 +24,6 @@ void printLetter(byte letterNum)
     //count[METAC]=0;
   }
   countChange(1);
-  if(rJustify || cJustify)
-  {
-    count[LSENT]++;
-  }
 }
 void countChange(byte increment)
 {
