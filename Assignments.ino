@@ -33,7 +33,7 @@ byte check(word chordValue)
     //for the first layout
   {
     //check there is something the equals the current chord
-    if(word(EEPROM.read(address), EEPROM.read(address+1)) == chordValue)
+    if(readChord(address) == chordValue)
     {
       return address/2;
       //translates to ascii number for the represented letter
@@ -45,7 +45,7 @@ byte check(word chordValue)
   for(int address=2;address<56; address+=2)
     //for the second layout
   {
-    if(word(EEPROM.read(address), EEPROM.read(address+1)) == chordValue)
+    if(readChord(address) == chordValue)
     {
       return address/2+SECONDLAY;
       //translates to ascii number for the represented letter
@@ -54,6 +54,11 @@ byte check(word chordValue)
   }
   //no assignments made for given cord, return 0 or false
   return 0;
+}
+
+word readChord(int address)
+{
+  return word(EEPROM.read(address), EEPROM.read(address+1));
 }
 
 

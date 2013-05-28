@@ -69,9 +69,8 @@ byte sugSize=0;//defines the size of the suggestion
 boolean rJustify=false;
 boolean cJustify=false;
 boolean explicitMode=false;
-word no;
-word yes;
-//word meta;
+#define YES 60//first byte address in EEPROM
+#define NO 62//first byte address in EEPROM
 //error correction and alternate assignments
 #define ONSECOND 254 //location in EEPROM 254
 #define DONELEARNING 255 //location in EEPROM 255
@@ -127,10 +126,6 @@ void setup()
     //paulsMacro();// this opens a text editor for testing, comment this out
     setControls();//promt and assign for yes/no
   }
-  yes = word(EEPROM.read(60), EEPROM.read(61));
-  no = word(EEPROM.read(62), EEPROM.read(63));
-  //meta= word(EEPROM.read(64), EEPROM.read(65));
-  //put personal yes/no in ram so it doesn't need to be parsed from EEPROM
 }
 //-----------------------------------------------------------------------------begin main loop
 //KEY- following"//:" = file/tab dependency
@@ -141,12 +136,12 @@ void loop()
     autoLineReturn();//:controlMacros
     //get the current button status 
     word chordValue=getValue();//:valueAssement
-    if(chordValue==yes)
+    if(chordValue==readChord(YES))
     {// if yes or no do those and restart the loop//:ControlMacros
       yesCase();//:controlMacros
       return;//restart the loop
     }
-    else if(chordValue==no)
+    else if(chordValue==readChord(NO))
     {
       noCase();//:controlMacros
       count[YESC]=0;//set yes to 0 in order to define specific cases
