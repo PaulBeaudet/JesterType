@@ -161,14 +161,14 @@ void autoSug()
           if(l==count[CWORD]-1)//if this is the last comparable letter
           {
             //make the suggestion
-            Keyboard.print(" ");
+            pressKey(' ');
             sugSize=1;
             if(letterBuffer[0]<91)
             {//if a capital was printed
               buffer[0]-=32;//uppercase the buffer
             }//to match printed output
             buffPrint();
-            pressKey(sugSize, left);
+            movement(sugSize, LEFT;);
             return;//stop looking for suggestions
           }
         }
@@ -183,8 +183,8 @@ void autoSug()
 }
 void autoFill()
 {
-  pressKey(sugSize, right);// move the currsor right
-  pressKey(sugSize+count[LWORD],BACK);// delete previous suggestion
+  movement(sugSize, RIGHT);// move the currsor right
+  backSpaces(sugSize+count[LWORD]);// delete previous suggestion
   count[LINEC]+=sugSize; // add the suggestion size to the line count
   count[LINEC]-=count[LWORD];//subtract the unused word
   count[CSENT]+=sugSize; //add the suggestion to current sentance count
@@ -201,12 +201,12 @@ void buffPrint()
   {
     if(buffer[i])
     {
-      Keyboard.write(buffer[i]);//write the letter
+      pressKey(buffer[i]);//write the letter
       sugSize++;//compile the size of the suggestion
     }
     else
     {//when the last character is reached
-      Keyboard.write(' ');
+      pressKey(' ');
       sugSize++;
       return;
     };
@@ -216,7 +216,7 @@ void buffPrint()
 void cleanSug()//Clear suggestion
 {
   buffer[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];//reset buffer
-  pressKey(sugSize,right);//move cursor
-  pressKey(sugSize,BACK);//remove suggestion
+  movement(sugSize,RIGHT);//move cursor
+  backSpaces(sugSize);//remove suggestion
   sugSize=0;//set its size to zero !!unessisary??
 }

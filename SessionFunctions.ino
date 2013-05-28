@@ -27,15 +27,5 @@ boolean session(int address, byte code)
     // true, ie do things unique to an unestablished session 
   };
 }
-//misc
-void wait()
-{
-  while(digitalRead(buttons[0])==HIGH)
-  {
-    // waits for input to prompt yes and no
-    ;
-  }
-}
-
 
 

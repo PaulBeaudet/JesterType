@@ -104,3 +104,13 @@ int rawInput()
   return value;
 }
 
+//extra button functions
+void wait()//hold till button promt
+{
+  while(digitalRead(buttons[0])==HIGH)
+  {
+    // waits for input to prompt yes and no
+    ;
+  }
+}
+

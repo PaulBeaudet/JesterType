@@ -75,35 +75,15 @@ byte sugSize=0;//defines the size of the suggestion
 // the modifier key to the second assignment
 #define SECONDLAY 96
 // 96 defines the amount of offset from the first assignment in eeprom
-//modifiers are assign as variables to pass to functions
-//!!Keyboard object specific 
-prog_char supeRight= KEY_RIGHT_GUI;
-prog_char lctrl = KEY_LEFT_CTRL;
-prog_char rctrl = KEY_RIGHT_CTRL;
-prog_char lshift = KEY_LEFT_SHIFT;
-prog_char rshift = KEY_RIGHT_SHIFT;
-prog_char lalt = KEY_LEFT_ALT;
-prog_char ralt = KEY_RIGHT_ALT;
-prog_char up = KEY_UP_ARROW;
-prog_char down = KEY_DOWN_ARROW;
-prog_char right = KEY_RIGHT_ARROW;
-prog_char left = KEY_LEFT_ARROW;
-//prog_char HOME = KEY_HOME;
-//prog_char END = KEY_END;
-//prog_char f2 = KEY_F2;
-//prog_char f4 = KEY_F4;
-//prog_char f5 = KEY_F5;
-//prog_char f10 = KEY_F10;
-//prog_char f12 = KEY_F12;
-prog_char tab = KEY_TAB;
-prog_char RTN = KEY_RETURN;
-#define BACK 178
 #define REACT 300// time for computer host to react to commands
-
+//movement() bearing key
+#define LEFT 1
+#define RIGHT 0
 //-----------------------------------------------------------------------Set up
 void setup()
 {
   Keyboard.begin();
+  //Serial.begin(9600)//KeyboardFunction.ino needs to me commented out and serialFunction.ino in
   //------------input setting
   for (byte set=0;set<NUMBUTTONS;set++)
   {
