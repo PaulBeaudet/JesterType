@@ -168,7 +168,7 @@ void autoSug()
               buffer[0]-=32;//uppercase the buffer
             }//to match printed output
             buffPrint();
-            sKey(sugSize, left);
+            pressKey(sugSize, left);
             return;//stop looking for suggestions
           }
         }
@@ -183,8 +183,8 @@ void autoSug()
 }
 void autoFill()
 {
-  sKey(sugSize, right);// move the currsor right
-  sKey(sugSize+count[LWORD],BACK);// delete previous suggestion
+  pressKey(sugSize, right);// move the currsor right
+  pressKey(sugSize+count[LWORD],BACK);// delete previous suggestion
   count[LINEC]+=sugSize; // add the suggestion size to the line count
   count[LINEC]-=count[LWORD];//subtract the unused word
   count[CSENT]+=sugSize; //add the suggestion to current sentance count
@@ -216,7 +216,7 @@ void buffPrint()
 void cleanSug()//Clear suggestion
 {
   buffer[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];//reset buffer
-  sKey(sugSize,right);//move cursor
-  sKey(sugSize,BACK);//remove suggestion
+  pressKey(sugSize,right);//move cursor
+  pressKey(sugSize,BACK);//remove suggestion
   sugSize=0;//set its size to zero !!unessisary??
 }
