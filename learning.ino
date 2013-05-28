@@ -191,7 +191,7 @@ void autoFill()
   count[CSENT]-=count[LWORD];//subtract the unused word
   count[LWORD]=sugSize;//the suggestion is now the size of the last word
   buffPrint();//print the word
-  Keyboard.write(' ');//add a space !! is this accounted for??
+  //count[YESC]++;//increse the yes count as it would be when word is complete.
   sugSize=0;//reset suggestion size so that clearSug() 
 }//doest remove correction previous next loop
 
@@ -206,6 +206,8 @@ void buffPrint()
     }
     else
     {//when the last character is reached
+      Keyboard.write(' ');
+      sugSize++;
       return;
     };
   }

@@ -102,13 +102,16 @@ void noCase()
     case 3:
       punctuation('!');
       break;
+    default:
+      count[YESC]=0;//set yes to 0 in order to define specific cases
     }
+    count[NOC]++;//add to the no count
   }
   else
   {//in all other cases 
     backSpace();//remove a character
+    count[YESC]=0;//set yes to 0 in order to define specific cases
   };
-  count[NOC]++;//add to the no count
 }
 
 //###########################################formating functions

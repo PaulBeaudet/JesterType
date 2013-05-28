@@ -144,7 +144,6 @@ void loop()
     else if(chordValue==readChord(NO))
     {
       noCase();//:controlMacros
-      count[YESC]=0;//set yes to 0 in order to define specific cases
       return;//restart the loop
     }
     /*else if(chordValue==meta)
