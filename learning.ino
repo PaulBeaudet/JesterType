@@ -168,7 +168,7 @@ void autoSug()
               buffer[0]-=32;//uppercase the buffer
             }//to match printed output
             buffPrint();
-            movement(sugSize, LEFT;);
+            movement(sugSize, LEFT);
             return;//stop looking for suggestions
           }
         }

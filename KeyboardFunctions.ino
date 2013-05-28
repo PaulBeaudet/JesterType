@@ -1,9 +1,10 @@
-//keyboardFunctions
+/*keyboardFunctions
 //would need to be a serial equivilent of this file to debug
 //on uno and other non-atmega32u4
 //!!some of the controlMacro functions need to be moved here
 //to encompass all keyboard functions over the scope of JesterType
-
+//################################################################
+*/
 //modifiers are assign as variables to pass to functions
 //!!Keyboard method specific 
 //prog_char supeRight= KEY_RIGHT_GUI;
@@ -27,6 +28,11 @@ prog_char left = KEY_LEFT_ARROW;
 prog_char tab = KEY_TAB;
 prog_char RTN = KEY_RETURN;
 #define BACK 178
+//-----------------------------
+void interfaceUp()
+{
+  Keyboard.begin();
+}
 //Cross serial compatible
 void pressKeys(int presses, char key)
 {
@@ -39,10 +45,6 @@ void pressKey(char key)
 {
   Keyboard.write(key);
 }
-/*void charArrayPrint(char array[])//!!needs to be a pointer??
-{
-  Keyboard.print(array);//!! would this work?
-}*/
 //HID only / serial creative (new lining reproduction)
 void backSpace()
 {

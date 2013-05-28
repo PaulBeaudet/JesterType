@@ -82,8 +82,8 @@ byte sugSize=0;//defines the size of the suggestion
 //-----------------------------------------------------------------------Set up
 void setup()
 {
-  Keyboard.begin();
-  //Serial.begin(9600)//KeyboardFunction.ino needs to me commented out and serialFunction.ino in
+  interfaceUp();//comment out KeyboardFunction.ino or serialFunction.ino
+  //depending on what board you are using
   //------------input setting
   for (byte set=0;set<NUMBUTTONS;set++)
   {
