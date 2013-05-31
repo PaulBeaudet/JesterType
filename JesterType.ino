@@ -27,57 +27,37 @@
  From pin to switch--switch to 330om resistor--resistor to ground
  //resistor is a safety for prototyping, not needed in purpose built application
  Thats it! Very simple for this prototype. Note that Internal pull-ups are used.
- ################################################################################
- */
-//eeprom session key, change to start over (if forgot yes/no assignment
-//or are testing the learning process)
-//############
-#define KEY 6
-//############
+ #$$$$$$$$$$$###################################################################*/
+#define KEY 6//eeprom session key, change to start over
+//$$$$$$$$$$$(if forgot yes/no assignment or are testing the learning process)
 //-----------------------------------------------------------------define buttons
 byte buttons[]=
 {
   2,3,4,5,6
 };
 #define NUMBUTTONS sizeof(buttons)
-//----------------------------------------------keyboard definitions
-//yes and no structure counters and flag
-#define LINESIZE 80//just needs to be under 255  
-//"count" organized into an array for easy iteration 
-//and function passing
-byte count[7]={
-  0,0,0,0,0,0,0};
-//count KEY, to make addressing the array readable
-#define LINEC 0 // line return sensor
-#define CWORD 1 //current word
-#define CSENT 2 //current sentence
-#define LWORD 3 // last word
-#define LSENT 4 // last sentence
-#define YESC 5 // yes count
-#define NOC 6 // no count
-#define METAC 7 // meta count
-//KEY: 0=line return/printed, 1=word, 2=sentence,    
-//3=last word, 4=last sentence, 5=yes, 6=no
-#define BUFFSIZE 14
-char letterBuffer[BUFFSIZE]={
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+//paramiter for line size limiter
+#define LINESIZE 80//just needs to be under 255
+char printedLetters[2][LINESIZE]={{},{}};
+boolean editLine=0;
+byte lineCount=0;
+byte wordCount=0;
 //holds  letters for autofill functions
-char buffer[15];//global for wordlist
+#define BUFFSIZE 15
+char buffer[BUFFSIZE];//global for wordlist
 //large enough for the largest string it must hold
-byte sugSize=0;//defines the size of the suggestion
+//----------------------------------------------Defined EEPROM addresses
 #define YES 60//first byte address in EEPROM
 #define NO 62//first byte address in EEPROM
-//error correction and alternate assignments
-#define ONSECOND 254 //location in EEPROM 254
+#define ONSECOND 254 //location in EEPROM 254//error correction and alternate assignments
 #define DONELEARNING 255 //location in EEPROM 255
-//3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
 #define LETTERSLEARNED 256 //location in EEPROM
+//3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
 // the modifier key to the second assignment
-#define SECONDLAY 96
-// 96 defines the amount of offset from the first assignment in eeprom
+#define SECONDLAY 96// 96 defines the amount of offset from the first assignment in eeprom
 #define REACT 300// time for computer host to react to commands
-//movement() bearing key
-#define LEFT 1
+#define LEFT 1//movement() bearing key
 #define RIGHT 0
 //-----------------------------------------------------------------------Set up
 void setup()
@@ -122,11 +102,6 @@ void loop()
       noCase();//:controlMacros
       return;//restart the loop
     }
-    /*else if(chordValue==meta)
-     {
-     metaCase();
-     return;
-     }*/
     //-------------------------------letter related steps
     cleanSug();//clear the old suggestion before printing the next letter
     //figure out if the chord is a letter that has an assignment in eeprom

@@ -1,51 +1,64 @@
 //ControMacros---controling opporators that imply funtions
 //such as space, enter, delete, tab, justify and so on
+byte yesCount=0;
+byte noCount=0;
+boolean sentenceStart=true;
+boolean wordStart=true;
 //-------------------------------------------YES CASE
 void yesCase()
 {
-  if(count[YESC])
+  if(yesCount)
   {
-    if(count[YESC]==1)
+    if(yesCount==1)
     {
-      period();
+      backSpace();
+      pressKey('.');
+      pressKey(' ');
+      lineCount++;
+      wordCount=0;
+      sentenceStart=true;
     }
     else
     {
       enter();
-      count[YESC]=0;
+      editLineSwitch(LINESIZE);
+      yesCount=0;
+      lineCount=0;
       return;
     }
   }
   else
-  {
-    space();
+  {    
+    pressKey(' ');
+    wordStart=true;
+    lineCount++;
   };
-  count[YESC]++;
+  yesCount++;
 }
 //#####################################NO
 void noCase()
 {
-  if(count[YESC])
+  if(yesCount)
   {
-    if(count[YESC]<2 && count[NOC]<1)
+    if(yesCount<2 && noCount<1)
     {
       autoFill();
-      count[NOC]=0;
+      noCount=0;
       return;
     }
-    else if(count[YESC]==2)
+    else if(yesCount==2)
     {//if yes is at the puctuation phase
-      if(count[NOC])
+      if(noCount)
       {//and no has been previously pressed
-        if(count[NOC]==1)
+        if(noCount==1)
         {//that is pressed once
           punctuation(',');//place a comma
         }
-        else if(count[NOC]==2)
+        else if(noCount==2)
         {//its pressed a third time
           punctuation('!');//place an exclaimation
-          count[YESC]=0;//reset yes an no
-          count[NOC]=0;
+          yesCount=0;//reset yes an no
+          noCount=0;
           return;
         };
       }
@@ -54,42 +67,39 @@ void noCase()
         punctuation('?');//place a question
       };
     };//no is incremented in most yes no cases
-    count[NOC]++;//add to the no count
+    noCount++;//add to the no count
   }
   else
   {//in all other cases 
     backSpace();//remove a character
-    count[YESC]=0;//set yes to 0 in order to define specific cases
+    lineCount--;
+    wordCount--;
+    printedLetters[editLine][lineCount]=0;
+    yesCount=0;//set yes to 0 in order to define specific cases
   };
 }
 //--------------------------------------------Typing functions
 void printLetter(byte letterNum)
 {
-  if(count[CSENT]==0)
+  if(sentenceStart)
   {
     pressKey(letterNum-32);
-    letterBuffer[0]=letterNum-32;
+    printedLetters[editLine][lineCount]=letterNum-32;
+    sentenceStart=false;
   }
   else
   {
     pressKey(letterNum);
-    if(count[CWORD]<14)
-    {
-      letterBuffer[count[CWORD]]=letterNum;
-    }
-    
-  }
-  count[YESC]=0;
-  count[NOC]=0;
-  countChange(1);
-}
-void countChange(byte increment)
-{
-  for(byte i=0;i<3;i++)
+    printedLetters[editLine][lineCount]=letterNum;
+  };
+  if(wordStart)
   {
-    count[i]=count[i]+increment;
-    //increments 'current' counts
+    wordCount=0;
   }
+  yesNoReset();
+  wordStart=false;
+  lineCount++;
+  wordCount++;
 }
 //-----------------------------
 void punctuation(char mark)
@@ -97,39 +107,68 @@ void punctuation(char mark)
   backSpaces(2);
   pressKey(mark);
   pressKey(' ');
-  count[YESC]++;//why?
 }
-//------------------------
-void space()
+//------------------------batch count change
+void yesNoReset()
 {
-  pressKey(' ');
-  countChange(1);
-  count[LWORD]=count[CWORD];
-  count[CWORD]=0;
+  yesCount=0;
+  noCount=0;  
 }
-//-----------------------
-void period()
-{
-  backSpaces(1);//irony=1 backspaces
-  pressKey('.');
-  pressKey(' ');
-  countChange(1);
-  count[LWORD]++;
-  count[LSENT]=count[CSENT];
-  count[CSENT]=0;
-}
+//----------determine current wordsize
+/*
+byte sizeCurrent()
+ {
+ byte i= lineCount;
+ char used=printedLetters[editLine][i];
+ byte scope=0;//size
+ while(used > 48 && i)//48 is 0 on the ascii table
+ {//lesser values are non-characters
+ i--;//decrease increment
+ used=printedLetters[editLine][i];
+ //read the letter to parse whether it has been used
+ scope++;
+ }
+ if (used==' ')//or 32 in ascii
+ {//presuming the end of a word is the first space
+ return scope;
+ }
+ }*/
 //###########################################formating functions
+#define LINESWITCH 20//number at which edit line switches
 void autoLineReturn()
 {//for main loop
-  if(count[LINEC]>LINESIZE)
+  if(lineCount>LINESIZE)
   {//one the line size limit is reached
-    if(count[CWORD])
+    if(wordCount)
     {//given there are printed letters 
-      movement(count[CWORD],LEFT);//:KeyboardFunctions
+      movement(wordCount,LEFT);//:KeyboardFunctions
       //move the cursor to the left of the current word prepping it
+      byte i=0;
+      for(byte backtrack=LINESIZE-wordCount;backtrack<wordCount;backtrack++)
+      {//move buffered word in printed letters
+        printedLetters[!editLine][i]=printedLetters[editLine][backtrack];
+        printedLetters[editLine][backtrack]=' ';
+        i++;
+      }
     }//to be pushed to the next line thus keeping word whole
     enter();//regardless press enter and add the current word count
-    count[LINEC]=count[CWORD];//to the line in case a word was in progress
+    editLine=!editLine;//now edit line is the other editline
+    lineCount=wordCount;//to the line in case a word was in progress
+  }
+  else
+  {
+    editLineSwitch(LINESWITCH);
+  };
+}
+void editLineSwitch(byte compare)
+{
+  if(editLine && lineCount<compare)
+  {
+    for(byte i=0;i<lineCount;i++)
+    {
+      printedLetters[0][i]=printedLetters[1][i];
+    }
+    editLine=0;
   }
 }
 //------------------------------------set-up function
@@ -149,6 +188,11 @@ void setControls()
   assign(31, getValue(),0);//which is address 62 in EEPROM
   backSpaces(8);//Remove the prompt
 }
+
+
+
+
+
 
 
 
