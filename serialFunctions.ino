@@ -5,7 +5,7 @@
 //uncomment this file and comment out KeboardFuntion.ino for
 //compatibility
 /*
-void interfaceUp()
+void outputUp()
 {
   Serial.begin(9600);
 }
@@ -25,40 +25,39 @@ void pressKey(char key)
 void backSpace()
 {
   Serial.println();
-  if(count[CWORD])
+  if(wordSize[CURRENT])
   {
-    letterBuffer[count[CWORD]-1]=0;
+    letterBuffer[wordSize[CURRENT]-1]=0;
   }
-  pressKeys(count[LINEC]-count[CWORD]-1,'#');
+  pressKeys(lineCount-wordSize[CURRENT]-1,'#');
   countChange(-1);
   Serial.write(letterBuffer);
 }
 void backSpaces(int increment)
 {//
-  if(count[CWORD])
+  if(wordSize[CURRENT])
   {
-    letterBuffer[count[CWORD]-1]=0;
+    letterBuffer[wordSize[CURRENT]-1]=0;
   }
-  pressKeys(count[LINEC]-count[CWORD],'#');
+  pressKeys(lineCount-wordSize[CURRENT],'#');
   Serial.print(letterBuffer);
 }
 void enter()
 {
   Serial.println();
-  count[LINEC]=0;
 }
 void movement(int increment, boolean bearing)
 {
   if(bearing)//if true aka 1
   {
     Serial.println();
-    pressKeys(count[LINEC]-count[CWORD],'#');
+    pressKeys(lineCount-wordSize[CURRENT],'#');
     Serial.print(letterBuffer);
   }
   else
   {
     Serial.println();
-    pressKeys(count[LINEC]+1,'#');
+    pressKeys(lineCount+1,'#');
   }
 }
 */

@@ -1,5 +1,5 @@
-#include<avr/pgmspace.h>
-#include <EEPROM.h>
+#include<avr/pgmspace.h>//explicitly stated read only memory
+#include <EEPROM.h>//persistent write-able in runtime memory
 //#include <MemoryFree.h>//http://playground.arduino.cc/Code/AvailableMemory
 //
 /*
@@ -19,23 +19,16 @@
  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  ##############################################################################
  
- Build for the Arduino Micro, Leonardo or Usb Lilypad (ATMEGA32u4) 
+ Build for the Arduino Micro, Leonardo or Usb Lilypad (ATMEGA32u4) w/KeyboardFunction.ino
+ Build for the Arduino uno, mega ect w/serialFunction.ino(work in progress)
  
  ######### CURCUIT DISCRIPTION ################################################
- Five momentary switches are physically wired in the following fashion starting from 
- the assigned pins (in the current case 2-6) for each pin.
- From pin to switch--switch to 330om resistor--resistor to ground
- //resistor is a safety for prototyping, not needed in purpose built application
- Thats it! Very simple for this prototype. Note that Internal pull-ups are used.
+ See valueAssement_buttons.ino for specific discription of button prototype which is 
+ the current default 
+ Other sensor arrangements will be used in the future 
  #$$$$$$$$$$$###################################################################*/
-#define KEY 6//eeprom session key, change to start over
+#define KEY 6//persistent session key, change to start over
 //$$$$$$$$$$$(if forgot yes/no assignment or are testing the learning process)
-//-----------------------------------------------------------------define buttons
-byte buttons[]=
-{
-  2,3,4,5,6
-};
-#define NUMBUTTONS sizeof(buttons)
 
 //paramiter for line size limiter
 #define LINESIZE 80//just needs to be under 255
@@ -62,25 +55,12 @@ char buffer[BUFFSIZE];//global for wordlist
 //-----------------------------------------------------------------------Set up
 void setup()
 {
-  interfaceUp();//comment out KeyboardFunction.ino or serialFunction.ino
-  //depending on what board you are using
-  //------------input setting
-  for (byte set=0;set<NUMBUTTONS;set++)
-  {
-    //sets the button pins
-    pinMode(buttons[set], INPUT);
-    digitalWrite(buttons[set], HIGH); 
-  }  
-  //this sets pull-up resistor/ie input through 20k to 5v
-  //in this way| input to button/button to ground, is proper and will read as low when pressed
-  //-------------------------------------------------------------------------------------------- 
-  //--check if this arduino's eeprom has been used for something else if it has clear the eeprom
-  if (session(512, KEY))
-  {
-    clearPROM(0, 257);//clear possible old assignments
-    //wait();
-    //paulsMacro();// this opens a text editor for testing, comment this out
-    setControls();//promt and assign for yes/no
+  outputUp();//comment out KeyboardFunction.ino or serialFunction.ino to switch output
+  inputUp();//set up input (set pins for buttons) 
+  if (session(512, KEY))//check if this arduino's eeprom has been "marked" w/ the key
+  {// if Key is non-existent clear the eeprom starting the learning process againt
+    clearPROM(0, 257);//clear possible old assignments//:SessionFunctions
+    setControls();//learning starts w/ a promt to assign for yes/no
   }
 }
 //-----------------------------------------------------------------------------begin main loop
@@ -88,10 +68,9 @@ void setup()
 void loop()
 {
   while(true)//to provide a way to start from step one with a return
-  {//JesterType defined linesize limiter
-    autoLineReturn();//:controlMacros
-    //get the current button status 
-    word chordValue=getValue();//:valueAssement
+  {
+    autoLineReturn();//:controlMacros//JesterType defined linesize limiter
+    word chordValue=getValue();//:valueAssement//get the current button status 
     if(chordValue==readChord(YES))
     {// if yes or no do those and restart the loop//:ControlMacros
       yesCase();//:controlMacros
@@ -124,5 +103,3 @@ void loop()
     //Keyboard.print(freeMemory());//test mem usage: last test:2288
   }
 }
-//--------------------------------------------------------------------------end main loop
-

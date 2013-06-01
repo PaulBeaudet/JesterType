@@ -1,9 +1,32 @@
-//--------------------------------------------------------button functions
+/*valueAssesment_buttons
+ ######### CURCUIT DISCRIPTION ################################################
+ Five momentary switches are physically wired in the following fashion starting from 
+ the assigned pins (in the current case 2-6) for each pin.
+ From pin to switch--switch to 330om resistor--resistor to ground
+ //resistor is a safety for prototyping, not needed in purpose built application
+ Thats it! Very simple for this prototype. Note that Internal pull-ups are used.
+ ##############################################################################*/
 #define WINDOW 125 // time window in which chords are recorded
 #define BOUNCE 30// time to debounce
 #define RESTING 11111 // this is the resting chord value
 //resting need to be changed to reflected the number of buttons
-
+//-----------------------------------------------------------------define buttons
+byte buttons[]=
+{
+  2,3,4,5,6
+};
+#define NUMBUTTONS sizeof(buttons)
+void inputUp()
+{ 
+  for (byte set=0;set<NUMBUTTONS;set++)
+  {
+    //sets the button pins
+    pinMode(buttons[set], INPUT);
+    digitalWrite(buttons[set], HIGH); 
+  }  
+  //this sets pull-up resistor/ie input through 20k to 5v
+  //in this way| input to button/button to ground, is proper and will read as low when pressed
+}
 //--------------------------------------returning the chord value
 //return the raw value, monitor the buttons in a time window
 word getValue()

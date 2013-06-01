@@ -28,7 +28,7 @@
 //prog_char RTN = KEY_RETURN;
 #define BACK 178
 //-----------------------------
-void interfaceUp()
+void outputUp()
 {
   Keyboard.begin();
 }
