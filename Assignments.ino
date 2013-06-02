@@ -4,8 +4,8 @@ boolean assign(byte letter, word chord, byte modifier)
 {//does the assignment and returns true
   if(letter)
   {
-    byte hold = letter-modifier;
-    if(word(EEPROM.read(hold*2), EEPROM.read(hold*2+1)))
+    byte hold = letter-modifier;//offset the reading if using second layout
+    if(readChord(hold*2))//multiply letter by two to find address space
     {//check if letter has been assigned
       return false;
     } //if so short-curcuit 
@@ -21,7 +21,7 @@ boolean assign(byte letter, word chord, byte modifier)
   else//if a zero was passed to assign
   {
     return false;
-  };//so the function know it could not be passed
+  };//so the function knows it could not be passed
 
 }
 
