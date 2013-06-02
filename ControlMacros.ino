@@ -6,7 +6,12 @@ boolean sentenceStart=true;//for auto capitilization feature
 boolean wordStart=true;//to reset the wordCount and pronoun clauses
 //paramiter for line size limiter
 #define LINESIZE 80//just needs to be under 255
-char printedLetters[2][LINESIZE]={{},{}};//buffer for remembering printed letters
+char printedLetters[2][LINESIZE]={
+  {
+  }
+  ,{
+  }
+};//buffer for remembering printed letters
 boolean editLine=0;//keeps track of which printed letter line is being written
 byte lineCount=0;//keeps track of possition on the line
 byte wordCount=0;//keeps track of size of working word
@@ -43,14 +48,25 @@ void yesCase()
 }
 //#####################################NO
 void noCase()
-{
+{//if else tree i.e. one trunk
   if(yesCount)
   {
-    if(yesCount<2 && noCount<1)
-    {
-      autoFill();
-      noCount=0;
-      return;
+    if(yesCount==1)
+    {//if the space has been placed
+      if(noCount<1)//is no count zero
+      {
+        autoFill();//fill in the suggestion word
+        noCount++;
+      }
+      else if(noCount==1)//if no count isn't zero set it to zero
+      {//auto-correct edit clause
+        wordStart=false;
+        backSpace();
+        printedLetters[editLine][lineCount]=0;
+        lineCount--;//decrement edit possition
+        yesCount=0;//set yes to zero as a proceeding period is now irrelevent
+        //wordCount=lastWord()//!!function to find last word size needed
+      };
     }
     else if(yesCount==2)
     {//if yes is at the puctuation phase
@@ -78,11 +94,13 @@ void noCase()
   else
   {//in all other cases 
     backSpace();//remove a character
-    lineCount--;
-    wordCount--;
     printedLetters[editLine][lineCount]=0;
+    lineCount--;//decrement edit possition
+    wordCount--;
     yesCount=0;//set yes to 0 in order to define specific cases
+    return;//do not increment no count
   };
+  //noCount++;//fall through case unless a return is called
 }
 //--------------------------------------------Typing functions
 void printLetter(byte letterNum)
@@ -194,6 +212,8 @@ void setControls()
   assign(31, getValue(),0);//which is address 62 in EEPROM
   backSpaces(8);//Remove the prompt
 }
+
+
 
 
 
