@@ -29,17 +29,6 @@
  #$$$$$$$$$$$###################################################################*/
 #define KEY 6//persistent session key, change to start over
 //$$$$$$$$$$$(if forgot yes/no assignment or are testing the learning process)
-
-//paramiter for line size limiter
-#define LINESIZE 80//just needs to be under 255
-char printedLetters[2][LINESIZE]={{},{}};
-boolean editLine=0;
-byte lineCount=0;
-byte wordCount=0;
-//holds  letters for autofill functions
-#define BUFFSIZE 15
-char buffer[BUFFSIZE];//global for wordlist
-//large enough for the largest string it must hold
 //----------------------------------------------Defined EEPROM addresses
 #define YES 60//first byte address in EEPROM
 #define NO 62//first byte address in EEPROM

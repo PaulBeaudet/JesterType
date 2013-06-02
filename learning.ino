@@ -1,4 +1,7 @@
 //learning
+#define BUFFSIZE 15//holds  letters for autofill functions
+char buffer[BUFFSIZE];//global for wordlist
+//large enough for the largest string it must hold
 //Planned new learning functions will be base on the diriving commanality from the wordlist
 //as opposed to the following frequency array
 //common letter frequencies 2d array, data points are the letter's address space in eeprom

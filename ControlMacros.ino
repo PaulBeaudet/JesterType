@@ -1,9 +1,15 @@
 //ControMacros---controling opporators that imply funtions
 //such as space, enter, delete, tab, justify and so on
-byte yesCount=0;
-byte noCount=0;
-boolean sentenceStart=true;
-boolean wordStart=true;
+byte yesCount=0;//keeps track of yeses entered
+byte noCount=0;//keeps track of noes entered
+boolean sentenceStart=true;//for auto capitilization feature
+boolean wordStart=true;//to reset the wordCount and pronoun clauses
+//paramiter for line size limiter
+#define LINESIZE 80//just needs to be under 255
+char printedLetters[2][LINESIZE]={{},{}};//buffer for remembering printed letters
+boolean editLine=0;//keeps track of which printed letter line is being written
+byte lineCount=0;//keeps track of possition on the line
+byte wordCount=0;//keeps track of size of working word
 //-------------------------------------------YES CASE
 void yesCase()
 {
