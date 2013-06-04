@@ -9,8 +9,7 @@
 #define WINDOW 125 // time window in which chords are recorded
 #define BOUNCE 30// time to debounce
 #define RESTING 11111 // this is the resting chord value
-#define NOTICABLELAPSE 400//ms, human discernable time differance in button press durration
-#define BASELAPSE 50//ms, quick press distinction
+#define NOTICABLELAPSE 520//ms, human discernable time differance in button press durration
 //resting need to be changed to reflected the number of buttons
 //-----------------------------------------------------------------define buttons
 byte buttons[]=
@@ -27,28 +26,39 @@ void inputUp()
   }//in this way| input to button/button to ground, is proper and will read as low when pressed
 }
 //--------------------------------------returning the chord value
-//return the raw value, monitor the buttons in a time window
 word getValue()
 {
   word builtChord=0;//unique chord value to be created
-  word baseChord=RESTING;//assumed inactivity when called
   unsigned long past=millis()-1;//first millis diff is engineered here to make sure things get on the ball
   int windowCount=0;//time window starts at zero
   int noticablElapse=0;//incrementing the sample point in the time window
+  boolean active=false;//defines hold positions
+  boolean noSample=true;//test for when the window opens
 
-  while(windowCount<=WINDOW || getDebouncedState()>RESTING)//gather chordValue with in this time frame
+  while(noSample || active)//gather chordValue with in this time frame
   {//while window has elapsed or input is still active
     unsigned long currentTime=millis();//hold current time
-    baseChord=getDebouncedState();//gather chord
-    if(baseChord > RESTING)//when active or different || baseChord!=oldChord
+    word baseChord=getDebouncedState();//gather chord
+    if(baseChord > RESTING)//when active or different
     {
       windowCount+=(currentTime-past);//add increment
-      if(windowCount > BASELAPSE+noticablElapse)
+      active=true;//report activity to continue loop for holds
+      if(noSample)
       {//test the window against the elapsed time, which stagers the sampling
         builtChord+=baseChord-RESTING;//add one raw value to the base
         noticablElapse+=NOTICABLELAPSE;//increment the elapse time
+        noSample=false;//signals that a sample has been recorded
       }
+      else if(windowCount > noticablElapse)
+      {//else wait till the sample point
+        builtChord+=baseChord-RESTING;//add one raw value to the base
+        noticablElapse+=NOTICABLELAPSE;//increment the elapse time
+      };
     }
+    else
+    {//given no activity
+      active=false;//report no activty
+    };//otherwise there will be no return
     past=currentTime;//set the past time
   } 
   return builtChord;
