@@ -9,6 +9,8 @@
 #define WINDOW 125 // time window in which chords are recorded
 #define BOUNCE 30// time to debounce
 #define RESTING 11111 // this is the resting chord value
+#define NOTICABLELAPSE 400//ms, human discernable time differance in button press durration
+#define BASELAPSE 50//ms, quick press distinction
 //resting need to be changed to reflected the number of buttons
 //-----------------------------------------------------------------define buttons
 byte buttons[]=
@@ -19,62 +21,42 @@ byte buttons[]=
 void inputUp()
 { 
   for (byte set=0;set<NUMBUTTONS;set++)
-  {
-    //sets the button pins
+  {//set up the buttons 
     pinMode(buttons[set], INPUT);
-    digitalWrite(buttons[set], HIGH); 
-  }  
-  //this sets pull-up resistor/ie input through 20k to 5v
-  //in this way| input to button/button to ground, is proper and will read as low when pressed
+    digitalWrite(buttons[set], HIGH);//this sets pull-up resistor/ie input through 20k to 5v
+  }//in this way| input to button/button to ground, is proper and will read as low when pressed
 }
 //--------------------------------------returning the chord value
 //return the raw value, monitor the buttons in a time window
 word getValue()
 {
-  boolean basePress=true;
-  boolean regularPress=true;
-  boolean longPress=true;
-  word builtChord=0;
+  word builtChord=0;//unique chord value to be created
   word oldChord=RESTING;
   word baseChord=RESTING;//assumed inactivity when called
   unsigned long past=millis()-1;//first millis diff is engineered here to make sure things get on the ball
-  int windowCount=0;
+  int windowCount=0;//time window starts at zero
+  int noticablElapse=0;//incrementing the sample point in the time window
+  
   while(windowCount<=WINDOW || getDebouncedState()>RESTING)//gather chordValue with in this time frame
-  {
-    unsigned long currentTime=millis();
-    if(baseChord!=RESTING || windowCount>BOUNCE)// activity detection, start timer
-    {
-      unsigned long diff=currentTime-past;
-      windowCount+=diff;
+  {//while window has elapsed or input is still active
+    unsigned long currentTime=millis();//hold current time
+    if(baseChord>RESTING || windowCount>BOUNCE)//time incrementor
+    {//base is active or window is less than bounce
+      unsigned long diff=currentTime-past;//calculate increment
+      windowCount+=diff;//add increment
     }
-    //--gather chord 
-    baseChord=getDebouncedState();
-    if(baseChord > RESTING || baseChord!=oldChord)// in short, when active and different
+    baseChord=getDebouncedState();//gather chord
+    if(baseChord > RESTING || baseChord!=oldChord)//when active or different
     {
-      oldChord=baseChord;
-      if(basePress && windowCount > 50)
-      {
-        builtChord+=baseChord-RESTING;//this will allow for a base of 15 values
-        basePress=false;
+      oldChord=baseChord;//place hold the chord to compare later
+      if(windowCount > BASELAPSE+noticablElapse)
+      {//test the window against the elapsed time, which stagers the sampling
+        builtChord+=baseChord-RESTING;//add one raw value to the base
+        noticablElapse+=NOTICABLELAPSE;//increment the elapse time
       }
-      if(regularPress && windowCount > 400)
-      {
-        word temp=baseChord-RESTING;
-        builtChord+=temp*2;
-        regularPress=false;
-      }
-      if(longPress && windowCount > 750)
-      {
-        word temp=baseChord-RESTING;
-        builtChord+=temp*3;
-        longPress=false;
-      }
-
     }
-    //--set the past time
-    past=currentTime;
+    past=currentTime;//set the past time
   } 
-  //Serial.println(windowCount);
   return builtChord;
 }
 //---------------------------------------------------------debouncing
@@ -87,17 +69,14 @@ int getDebouncedState()
 
   int newState = rawInput();
   if(newState != oldState)
-  {
-    // one of the inputs has changed state
+  {// one of the inputs has changed state
     lastChangeTime = millis();
     oldState = newState;
   }
   else
-  {
-    // the inputs have not changed
+  {// the inputs have not changed
     if((oldState != debouncedState) && (millis() - lastChangeTime > BOUNCE))
-    {
-      // the inputs are stable and in a new state
+    {// the inputs are stable and in a new state
       debouncedState = newState;
     }
   }
@@ -105,35 +84,29 @@ int getDebouncedState()
 }
 
 // Read the values of all the buttons and represent them as an int
-int rawInput()
+int rawInput()//could be converted to word return
 {
-  int incrementor=1;
+  int incrementor=1;//changes digit edit possition
   int value=RESTING;//2 will represent high as zero may prove problematic for low
   for(int i=0;i<NUMBUTTONS;i++)
-  {
+  {//for every button
     if(digitalRead(buttons[i])==LOW)
-    {
-      //build an signal variable for all inputs
-      value+=incrementor;
-      //each button is represented by a seperate place value
-      incrementor*=10;
+    {//check if the button is low/pressed
+      value+=incrementor;//build an signal variable for all inputs
+      incrementor*=10;//each button is represented by a seperate place value
     } 
-    else
-    {
-      //given state has not changed incrementor still needs to progress
+    else//maybe the button wasn't press, but another might have been
+    {//given state has not changed incrementor still needs to progress
       incrementor*=10;
     }
   }
   return value;
 }
-
 //extra button functions
 void wait()//hold till button promt
-{
+{//as long as button 0 has yet to be pressed
   while(digitalRead(buttons[0])==HIGH)
-  {
-    // waits for input to prompt yes and no
-    ;
+  {// waits for input to prompt yes and no
+    ;//nothingness
   }
 }
-
