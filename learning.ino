@@ -5,6 +5,7 @@ char buffer[BUFFSIZE];//global for wordlist
 //Planned new learning functions will be base on the diriving commanality from the wordlist
 //as opposed to the following frequency array
 //common letter frequencies 2d array, data points are the letter's address space in eeprom
+/*
 #define LPLACES 7
 #define FREQ 13
 
@@ -38,7 +39,18 @@ prog_char commonLetters[8][FREQ] PROGMEM=
 
 //------------------------------------------------------------------------learning functions 
 //commit 1b3666ec7428a21a0a0f3eb8e5620b1c7ee8dfb3 has commited out previous learner
-
+*/
+byte simpleLearn(word chord)
+{
+  for(byte letter=97;letter<123;letter++)
+  {
+    if(assign(letter, chord, 0))
+    {
+      return letter;
+    }
+  }
+}
+/*
 byte learnUser(word chord)//simple sub to the original 
 {//for one assignment
   byte letter=learningSeq(chord, 0);
@@ -97,11 +109,12 @@ byte freqLookup(int place, word chord, byte modifier)
     }
   }
   return 0;
-}
+}*/
 
 word comboIndex[]={//index of wordlist
   0,25,225,1348      }; //reduces iterations
 //#########################################Functions involving wordlist
+/*
 byte likelyLetter(word chord)//#################!! future addition
 {//suggest a letter based on the common word list
   for(word i=comboIndex[wordCount];i<comboIndex[wordCount+1];i++)
@@ -131,11 +144,11 @@ byte likelyLetter(word chord)//#################!! future addition
     }
     else//given that this is the first letter to guess
     {//short curcuit by returning the most common unnassigned first letter
-      return freqLookup(0,chord,0);//lookup the most frequent first letter
+      return freqLookup(0,chord,0);//lookup the most frequent first letter//!!no assignment??
       //will return 0 when first assignment is done
     };
   }//given the word list is exsusted of options
-}
+}*/
 //#########################################Auto suggest
 void autoSug()
 {//makes a suggestion based on typed letters
