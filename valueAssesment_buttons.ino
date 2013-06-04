@@ -31,24 +31,18 @@ void inputUp()
 word getValue()
 {
   word builtChord=0;//unique chord value to be created
-  word oldChord=RESTING;
   word baseChord=RESTING;//assumed inactivity when called
   unsigned long past=millis()-1;//first millis diff is engineered here to make sure things get on the ball
   int windowCount=0;//time window starts at zero
   int noticablElapse=0;//incrementing the sample point in the time window
-  
+
   while(windowCount<=WINDOW || getDebouncedState()>RESTING)//gather chordValue with in this time frame
   {//while window has elapsed or input is still active
     unsigned long currentTime=millis();//hold current time
-    if(baseChord>RESTING || windowCount>BOUNCE)//time incrementor
-    {//base is active or window is less than bounce
-      unsigned long diff=currentTime-past;//calculate increment
-      windowCount+=diff;//add increment
-    }
     baseChord=getDebouncedState();//gather chord
-    if(baseChord > RESTING || baseChord!=oldChord)//when active or different
+    if(baseChord > RESTING)//when active or different || baseChord!=oldChord
     {
-      oldChord=baseChord;//place hold the chord to compare later
+      windowCount+=(currentTime-past);//add increment
       if(windowCount > BASELAPSE+noticablElapse)
       {//test the window against the elapsed time, which stagers the sampling
         builtChord+=baseChord-RESTING;//add one raw value to the base
