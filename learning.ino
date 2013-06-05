@@ -75,13 +75,14 @@ byte smarterLearn(word chord)
   {
     modifier=SECONDLAY;
   }
-  for(byte i=0;i<26;i++)
+  for(static byte i=0;i<26;i++)
   {
     byte letter=pgm_read_byte(&staticLearnOrder[i]);
     if(assign(letter, chord, modifier))
     {
       if(i==25)//if the this is the last letter
       {
+        i=0;
         if(modifier)
         {
         EEPROM.write(DONELEARNING, true);
