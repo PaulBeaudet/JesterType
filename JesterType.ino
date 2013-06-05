@@ -27,7 +27,7 @@
  the current default 
  Other sensor arrangements will be used in the future 
  #$$$$$$$$$$$###################################################################*/
-#define KEY 5//persistent session key, change to start over *!!default is 5
+#define KEY 6//persistent session key, change to start over *!!default is 5
 //$$$$$$$$$$$(if forgot yes/no assignment or are testing the learning process)
 //----------------------------------------------Defined EEPROM addresses
 #define YES 60//first byte address in EEPROM
@@ -85,7 +85,7 @@ void loop()
     }
     else//learnig still needs to be done
     {
-      printLetter(simpleLearn(chordValue));//:learing
+      printLetter(smarterLearn(chordValue));//:learing
       //print a newly guessed letter
     };
     autoSug();//make a suggestion based on the current letterBuffer

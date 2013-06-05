@@ -40,6 +40,8 @@ char buffer[BUFFSIZE];//global for wordlist
  //------------------------------------------------------------------------learning functions 
  //commit 1b3666ec7428a21a0a0f3eb8e5620b1c7ee8dfb3 has commited out previous learner
  */
+ prog_char staticLearnOrder[26] PROGMEM=
+ {'t','o','a','w','b','c','d','s','f','m','r','h','i','y','e','g','l','n','u','j','k','p','v','q','x','z'};
 byte simpleLearn(word chord)
 {
   byte modifier=0;
@@ -52,6 +54,33 @@ byte simpleLearn(word chord)
     if(assign(letter, chord, modifier))
     {
       if(letter==122)//if the this is the last letter
+      {
+        if(modifier)
+        {
+        EEPROM.write(DONELEARNING, true);
+        }
+        else
+        {
+          EEPROM.write(ONSECOND, true);
+        };
+      }//signify learning is done so that the filter can kick in
+      return letter;
+    }
+  }
+}
+byte smarterLearn(word chord)
+{
+  byte modifier=0;
+  if(EEPROM.read(ONSECOND))
+  {
+    modifier=SECONDLAY;
+  }
+  for(byte i=0;i<26;i++)
+  {
+    byte letter=pgm_read_byte(&staticLearnOrder[i]);
+    if(assign(letter, chord, modifier))
+    {
+      if(i==25)//if the this is the last letter
       {
         if(modifier)
         {
