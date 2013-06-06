@@ -4,7 +4,7 @@
 //like the uno and the mega
 //uncomment this file and comment out KeboardFuntion.ino for
 //compatibility
-
+/*
 void outputUp()
 {
   Serial.begin(9600);
@@ -63,11 +63,16 @@ void movement(int increment, boolean bearing)
     }
   }
 }
-
-
-
-
-
-
-
+void displayBuffer()
+{
+  Serial.println();
+  for(byte i=0;i<LINESIZE;i++)
+  {
+    if(printedLetters[editLine][i])
+    {
+      Serial.write(printedLetters[editLine][i]);
+    }
+  }
+}
+*/
 

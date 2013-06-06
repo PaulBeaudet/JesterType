@@ -231,13 +231,13 @@ void autoSug()
 }
 void autoFill()
 {
-  backSpaces(wordCount+1);// delete current printout plus the space
+  backSpaces(wordCount);// delete current printout plus the space
   buffPrint();//print new suggestion
   pressKey(' ');//press a space to start a new word 
-  wordStart=true;
+  //wordStart=true;//redundant??
   //print suggestion into the letter buffer
   byte j=0;//write the new word into the printed letters buffer
-  for(byte i=lineCount-wordCount+1;i<BUFFSIZE;i++)
+  for(byte i=lineCount-wordCount;i<BUFFSIZE;i++)
   {
     if(buffer[j])
     {
@@ -246,11 +246,12 @@ void autoFill()
     }
     else
     {
+      j++;
       printedLetters[editLine][i]=' ';//add the space to the buffer
       break;
     }
   }
-  lineCount-=wordCount+1;//subtract the unused word
+  lineCount-=wordCount;//subtract the unused word
   lineCount+=j; // add the suggestion size to the line count
   cleanSug();//remove the previous suggestion 
   //clean suggestion only normally happens with letter printing
@@ -297,6 +298,7 @@ byte suggestSize()
     }
   }
 }
+
 
 
 

@@ -42,6 +42,7 @@ void yesCase()
   {    
     pressKey(' ');
     wordStart=true;
+    wordCount++;//add to word count for formating functions
     lineCount++;
   };
   yesCount++;
