@@ -4,10 +4,13 @@
 //like the uno and the mega
 //uncomment this file and comment out KeboardFuntion.ino for
 //compatibility
-/*
+
 void outputUp()
 {
   Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
 }
 //Cross serial compatible
 void pressKeys(int presses, char key)
@@ -25,22 +28,18 @@ void pressKey(char key)
 void backSpace()
 {
   Serial.println();
-  if(wordSize[CURRENT])
+  for(byte i=0;i<lineCount;i++)
   {
-    letterBuffer[wordSize[CURRENT]-1]=0;
+    Serial.write(printedLetters[editLine][i]);
   }
-  pressKeys(lineCount-wordSize[CURRENT]-1,'#');
-  countChange(-1);
-  Serial.write(letterBuffer);
 }
 void backSpaces(int increment)
-{//
-  if(wordSize[CURRENT])
+{
+  Serial.println();
+  for(byte i=0;i<lineCount-increment;i++)
   {
-    letterBuffer[wordSize[CURRENT]-1]=0;
+    Serial.write(printedLetters[editLine][i]);
   }
-  pressKeys(lineCount-wordSize[CURRENT],'#');
-  Serial.print(letterBuffer);
 }
 void enter()
 {
@@ -51,16 +50,24 @@ void movement(int increment, boolean bearing)
   if(bearing)//if true aka 1
   {
     Serial.println();
-    pressKeys(lineCount-wordSize[CURRENT],'#');
-    Serial.print(letterBuffer);
+    for(byte i=0;i<lineCount;i++)
+    {
+      Serial.write(printedLetters[editLine][i]);
+    }
   }
   else
   {
-    Serial.println();
-    pressKeys(lineCount+1,'#');
+    for(byte i=lineCount;i<increment;i++)
+    {
+      Serial.write(printedLetters[editLine][i]);
+    }
   }
 }
-*/
+
+
+
+
+
 
 
 
