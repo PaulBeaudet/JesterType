@@ -29,12 +29,16 @@
  #$$$$$$$$$$$###################################################################*/
 #define KEY 5//persistent session key, change to start over *!!default is 5
 //$$$$$$$$$$$(if forgot yes/no assignment or are testing the learning process)
-//----------------------------------------------Defined EEPROM addresses
-#define YES 60//first byte address in EEPROM
-#define NO 62//first byte address in EEPROM
+//----------------Defined EEPROM addresses/ explains how address-space is used
+#define SECONDABEGIN 2//second layout of lowercase letters
+#define SECONDAEND 56
+#define YES 60//yes chord storage
+#define NO 62//no chord storage
+#define FIRSTASSIGNMENTBEGIN 194//divided by two equals ascii 'a'
+#define FIRSTASSIGNMENTEND 246//to ascii 'z'
+//#define LETTERSLEARNED 253 //counts letters learned
 #define ONSECOND 254 //location in EEPROM 254//error correction and alternate assignments
 #define DONELEARNING 255 //location in EEPROM 255
-#define LETTERSLEARNED 256 //location in EEPROM
 //3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
 // the modifier key to the second assignment
 #define SECONDLAY 96// 96 defines the amount of offset from the first assignment in eeprom

@@ -28,8 +28,8 @@ boolean assign(byte letter, word chord, byte modifier)
 //Checking
 byte check(word chordValue)
 {
-  for(int address=194;address<246;address+=2)
-    //for the first layout
+  for(int address=FIRSTASSIGNMENTBEGIN;address<FIRSTASSIGNMENTEND;address+=2)
+    //for the first layout 194-246
   {
     //check there is something the equals the current chord
     if(readChord(address) == chordValue)
@@ -41,8 +41,8 @@ byte check(word chordValue)
     }
   }
   //continue given no matches are found
-  for(int address=2;address<56; address+=2)
-    //for the second layout
+  for(int address=SECONDABEGIN;address<SECONDAEND; address+=2)
+    //for the second layout 2-56
   {
     if(readChord(address) == chordValue)
     {
