@@ -236,12 +236,12 @@ void autoFill()
   pressKey(' ');//press a space to start a new word 
   wordStart=true;
   //print suggestion into the letter buffer
-  byte j=0;
+  byte j=0;//write the new word into the printed letters buffer
   for(byte i=lineCount-wordCount+1;i<BUFFSIZE;i++)
   {
     if(buffer[j])
     {
-      printedLetters[editLine][i];
+      printedLetters[editLine][i]=buffer[j];
       j++;
     }
     else
@@ -277,7 +277,7 @@ void cleanSug()//Clear suggestion
   { 
     movement(scope+1,RIGHT);//move cursor size of suggestion plus space
     backSpaces(scope+1);//remove suggestion + space
-    eraseBuffer(scope);//reset buffer
+    eraseBuffer(scope);//reset wordlist buffer
   }
 }
 void eraseBuffer(byte scope)
@@ -289,16 +289,11 @@ void eraseBuffer(byte scope)
 }
 byte suggestSize()
 {
-  byte scope=0;
-  for(byte i=0;i<BUFFSIZE;i++)
+  for(byte scope=0;scope<BUFFSIZE;scope++)
   {
-    if(buffer[i])
+    if(!buffer[scope])
     {
-      scope++; 
-    }
-    else
-    {
-      return scope;
+      return scope; 
     }
   }
 }
