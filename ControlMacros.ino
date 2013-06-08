@@ -25,7 +25,9 @@ void yesCase()
       backSpace();
       pressKey('.');
       pressKey(' ');
+      printedLetters[editLine][lineCount]='.';
       lineCount++;
+      printedLetters[editLine][lineCount]=' ';
       wordCount=0;
       sentenceStart=true;
     }
@@ -41,6 +43,7 @@ void yesCase()
   else
   {    
     pressKey(' ');
+    printedLetters[editLine][lineCount]=' ';
     wordStart=true;
     wordCount++;//add to word count for formating functions
     lineCount++;
@@ -76,10 +79,11 @@ void noCase()
         if(noCount==1)
         {//that is pressed once
           punctuation(',');//place a comma
-        }
+        }//only period is recorded to simplify!!
         else if(noCount==2)
         {//its pressed a third time
           punctuation('!');//place an exclaimation
+          //only period is recorded to simplify!!
           yesCount=0;//reset yes an no
           noCount=0;
           return;
@@ -88,7 +92,7 @@ void noCase()
       else//no has not been pressed ye
       {
         punctuation('?');//place a question
-      };
+      };//only period is recorded to simplify!!
     };//no is incremented in most yes no cases
     noCount++;//add to the no count
   }
@@ -98,6 +102,10 @@ void noCase()
     printedLetters[editLine][lineCount]=0;
     lineCount--;//decrement edit possition
     wordCount--;
+    if (printedLetters[editLine][lineCount-1]=='.')//or '!','?'
+    {
+      sentenceStart=true;
+    }
     yesCount=0;//set yes to 0 in order to define specific cases
     return;//do not increment no count
   };
