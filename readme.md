@@ -18,15 +18,15 @@ The JesterType hardware prototype is currently a 5 button keyer that relies on t
 Currently Supported Devices
 --------------------------
 HID Supported platforms- "by the arduino language"
-Arduino Micro- working alpha (testing platform)
-Arduino USB Lilly pad- Should work, untested
-Arduino DUE- Should Work, untested
-Arduino LEONARDO- Should Work, untested
+*Arduino Micro- working alpha (testing platform)
+*Arduino USB Lilly pad- Should work, untested
+*Arduino DUE- Should Work, untested
+*Arduino LEONARDO- Should Work, untested
 
 Serial Testing- On these platforms the usb programmer would need to be flashed in order become a HID
 (comment out KeyboardFunctions.ino and comment in serialFunctions.ino)
-Arduino UNO- Serial testing should be semi-functional
-Arduino MEGA- Serial testing should be semi-functional
+*Arduino UNO- Serial testing should be semi-functional
+*Arduino MEGA- Serial testing should be semi-functional
 
 
 Copy notice
