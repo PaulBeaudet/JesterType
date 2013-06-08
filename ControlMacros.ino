@@ -54,19 +54,19 @@ void noCase()
   {
     if(yesCount==1)
     {//if the space has been placed
-      if(noCount<1)//is no count zero
+      if(noCount)//if no and yes are 1 (after autosug case)
       {
-        autoFill();//fill in the suggestion word
-        noCount++;
-      }
-      else if(noCount==1)//if no count isn't zero set it to zero
-      {//auto-correct edit clause
         wordStart=false;
         backSpace();
         printedLetters[editLine][lineCount]=0;
         lineCount--;//decrement edit possition
         yesCount=0;//set yes to zero as a proceeding period is now irrelevent
         //wordCount=lastWord()//!!function to find last word size needed
+      }
+      else
+      {
+        autoFill();//fill in the suggestion word
+        noCount++;//so that autofill does not continue 
       };
     }
     else if(yesCount==2)
