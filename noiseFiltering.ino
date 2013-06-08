@@ -1,7 +1,7 @@
 //------------------------------------------noise filtering
 byte filter(word noise)
 {
-  word correctToValue=9;//redundant?
+  word correctToValue=9;
   //cant be nine so if it prints this something is wrong
   int lowPoint=15;
   for(int address=194;address<246;address+=2)
