@@ -40,8 +40,17 @@ char buffer[BUFFSIZE];//global for wordlist
  //------------------------------------------------------------------------learning functions 
  //commit 1b3666ec7428a21a0a0f3eb8e5620b1c7ee8dfb3 has commited out previous learner
  */
- prog_char staticLearnOrder[26] PROGMEM=
- {'t','o','a','w','b','c','d','s','f','m','r','h','i','y','e','g','l','n','u','j','k','p','v','q','x','z'};
+prog_char staticLearnOrder[26] PROGMEM=
+{
+  't','o','a','w','b','c','d','s','f','m','r','h','i','y','e','g','l','n','u','j','k','p','v','q','x','z'};
+prog_char stagedLearning[][13] PROGMEM=
+{
+  {
+    't','o','a','w','c','d','s','f','m','r','h','i','e'                    }
+  ,
+  {
+    'b','y','g','l','n','u','j','k','p','v','q','x','z'                    }
+};
 byte simpleLearn(word chord)
 {
   byte modifier=0;
@@ -57,7 +66,7 @@ byte simpleLearn(word chord)
       {
         if(modifier)
         {
-        EEPROM.write(DONELEARNING, true);
+          EEPROM.write(DONELEARNING, true);
         }
         else
         {
@@ -96,6 +105,71 @@ byte smarterLearn(word chord)
     }
   }
 }
+//---------------------------------------------****************************************
+byte prioritizedLearn(word chord)
+{//learn by frequency
+  static byte common=0;
+  static byte uncommon=0;
+
+  if(common<13 && simpleChord(chord) || uncommon == 13)
+  {
+    byte letter=pgm_read_byte(&stagedLearning[0][common]);//check the frequency
+    if(assign(letter, chord, EEPROM.read(ONSECOND)))
+    {//attempt the assignment
+      common++;
+      if(uncommon==13 && common ==13)//if the this is the last letter
+      {
+        uncommon=0;//set i back to zero for the second layout
+        common=0;
+        learningProgression();//signify learning is done so that the filter can kick in
+      }
+      return letter;
+    }
+  }
+  else if(uncommon<13 || common==13)
+  {
+    byte letter=pgm_read_byte(&stagedLearning[1][uncommon]);//check the frequency
+    if(assign(letter, chord, EEPROM.read(ONSECOND)))
+    {//attempt the assignment
+      uncommon++;//increment to 12
+      if(uncommon==13 && common ==13)//if the this is the last letter
+      {
+        uncommon=0;//set i back to zero for the second layout
+        common=0;
+        learningProgression();//signify learning is done so that the filter can kick in
+      }
+      return letter;
+    }//signify learning is done so that the filter can kick in
+  };
+}
+void learningProgression()
+{
+  if(EEPROM.read(ONSECOND))
+  {//if a modifier value reads aka on second layout
+    EEPROM.write(DONELEARNING, true);
+  }
+  else
+  {//if its not on the second layout, put it there
+    EEPROM.write(ONSECOND, SECONDLAY);//write the second layout offset to the flag
+  };
+}
+
+boolean simpleChord(word chord)//determines a quick press chord
+{//if all digits are less then two return true
+  for(byte i=0;i<5;i++)//for each digit in the chord
+  {
+    if(chord%10>1)
+    {//check the chord agaist the incrementor
+      return false;
+    }
+    else
+    {//prep next test in the loop
+      chord/=10;
+    }
+  }//if this for loop ends without catching a greater than case.
+  return true;
+}
+
 /*
 byte learnUser(word chord)//simple sub to the original 
  {//for one assignment
@@ -234,7 +308,6 @@ void autoFill()
   backSpaces(wordCount);// delete current printout plus the space
   buffPrint();//print new suggestion
   pressKey(' ');//press a space to start a new word 
-  //wordStart=true;//redundant??
   //print suggestion into the letter buffer
   byte j=0;//write the new word into the printed letters buffer
   for(byte i=lineCount-wordCount;i<BUFFSIZE;i++)
@@ -298,7 +371,6 @@ byte suggestSize()
     }
   }
 }
-
 
 
 

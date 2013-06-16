@@ -27,7 +27,7 @@
  the current default 
  Other sensor arrangements will be used in the future 
  #$$$$$$$$$$$###################################################################*/
-#define KEY 5//persistent session key, change to start over *!!default is 5
+#define KEY 6//persistent session key, change to start over *!!default is 5
 //$$$$$$$$$$$(if forgot yes/no assignment or are testing the learning process)
 //----------------Defined EEPROM addresses/ explains how address-space is used
 #define SECONDABEGIN 2//second layout of lowercase letters
@@ -36,7 +36,8 @@
 #define NO 62//no chord storage
 #define FIRSTASSIGNMENTBEGIN 194//divided by two equals ascii 'a'
 #define FIRSTASSIGNMENTEND 246//to ascii 'z'
-//#define LETTERSLEARNED 253 //counts letters learned
+#define COMMONLETTERS 252 //counts letters learned
+#define UNCOMMONLETTERS 253 //counts letters learned
 #define ONSECOND 254 //location in EEPROM 254//error correction and alternate assignments
 #define DONELEARNING 255 //location in EEPROM 255
 //3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
@@ -89,10 +90,11 @@ void loop()
     }
     else//learning still needs to be done
     {
-      printLetter(smarterLearn(chordValue));//:learing
+      printLetter(prioritizedLearn(chordValue));//:learing
       //print a newly guessed letter
     };
     autoSug();//make a suggestion based on the current letterBuffer
     //Keyboard.print(freeMemory());//test mem usage: last test:2288
+    //displayBuffer();
   }
 }
