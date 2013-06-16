@@ -38,11 +38,7 @@ char buffer[BUFFSIZE];//global for wordlist
  };
  
  //------------------------------------------------------------------------learning functions 
- //commit 1b3666ec7428a21a0a0f3eb8e5620b1c7ee8dfb3 has commited out previous learner
  */
-prog_char staticLearnOrder[26] PROGMEM=
-{
-  't','o','a','w','b','c','d','s','f','m','r','h','i','y','e','g','l','n','u','j','k','p','v','q','x','z'};
 prog_char stagedLearning[][13] PROGMEM=
 {
   {
@@ -51,60 +47,6 @@ prog_char stagedLearning[][13] PROGMEM=
   {
     'b','y','g','l','n','u','j','k','p','v','q','x','z'                    }
 };
-byte simpleLearn(word chord)
-{
-  byte modifier=0;
-  if(EEPROM.read(ONSECOND))
-  {
-    modifier=SECONDLAY;
-  }
-  for(byte letter=97;letter<123;letter++)
-  {
-    if(assign(letter, chord, modifier))
-    {
-      if(letter==122)//if the this is the last letter
-      {
-        if(modifier)
-        {
-          EEPROM.write(DONELEARNING, true);
-        }
-        else
-        {
-          EEPROM.write(ONSECOND, true);
-        };
-      }//signify learning is done so that the filter can kick in
-      return letter;
-    }
-  }
-}
-byte smarterLearn(word chord)
-{//learn by frequency
-  byte modifier=0;//modifier defines offset for second layout
-  if(EEPROM.read(ONSECOND))//if its is time to teach the second layout
-  {
-    modifier=SECONDLAY;//modifiers equals the offset number
-  }
-  for(static byte i=0;i<26;i++)//for 26 static iterations
-  {//i.e. if 0 || 't' dont look for it again
-    byte letter=pgm_read_byte(&staticLearnOrder[i]);//check the frequency
-    if(assign(letter, chord, modifier))
-    {//attempt the assignment
-      if(i==25)//if the this is the last letter
-      {
-        i=0;//set i back to zero for the second layout
-        if(modifier)
-        {//if a modifier value reads aka on second layout
-          EEPROM.write(DONELEARNING, true);
-        }
-        else
-        {//if its not on the second layout, put it there
-          EEPROM.write(ONSECOND, true);
-        };
-      }//signify learning is done so that the filter can kick in
-      return letter;
-    }
-  }
-}
 //---------------------------------------------****************************************
 byte prioritizedLearn(word chord)
 {//learn by frequency
