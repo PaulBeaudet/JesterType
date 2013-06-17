@@ -102,7 +102,7 @@ void noCase()
     printedLetters[editLine][lineCount]=0;
     lineCount--;//decrement edit possition
     wordCount--;
-    if (printedLetters[editLine][lineCount-1]=='.')//or '!','?'
+    if (lineCount == 0 || printedLetters[editLine][lineCount-1]=='.')//or '!','?'
     {
       sentenceStart=true;
     }
