@@ -99,17 +99,71 @@ void noCase()
   else
   {//in all other cases 
     backSpace();//remove a character
-    printedLetters[editLine][lineCount]=0;
+    letterDecrement();//accounting involved with decreasing a letter
+    yesCount=0;//set yes to 0 in order to define specific cases
+  };
+}
+//-----------shorteners
+void letterDecrement()
+{
+  printedLetters[editLine][lineCount]=0;
+  if(lineCount)//so long as the count is not zero
+  {
     lineCount--;//decrement edit possition
-    wordCount--;
-    if (lineCount == 0 || printedLetters[editLine][lineCount-1]=='.')//or '!','?'
-    {
+    byte pCase=printedLetters[editLine][lineCount-1];//Sentence restart case *for caps*
+    if (pCase=='.' || pCase=='?' || pCase == '!')//this exception re-establishes a sentence start
+    {//set sentence start given first position after space and period
       sentenceStart=true;
     }
-    yesCount=0;//set yes to 0 in order to define specific cases
-    return;//do not increment no count
+  }
+  else//lineCount is null
+  {//in that the begining of the line has been reach or is about to be overcome
+    if(sentenceStart)
+    {//this represents a second backspace at zero after the first
+      if(editLine)
+      {
+        editLine=0;//edit the line there is still data for
+        lineCount=LINESIZE;//rough possition
+        positionReset();//recursively track the possition location
+      }
+    }
+    else
+    {
+      sentenceStart=true;
+    };
   };
-  //noCount++;//fall through case unless a return is called
+  if(wordCount)//so long as the count is not zero
+  {
+    wordCount--;//decrement the word count
+  }
+  else//wordCount was 0/ backspaced after an autocorrect or subtracting past first letter
+  {//make wordCound the size of the last word
+    lastWordCount();//recursively reset the wordCount to the last word
+  };//subtracted is the space after the word, punctuation or newline char
+}
+void lastWordCount()
+{//recursively add to the word count based on existing letters
+  byte pl=printedLetters[editLine][lineCount-wordCount];//!!need a lineCount 0 exception
+  if(lineCount-wordCount==0 && pl > 64 && pl < 123)
+  {//as long as its greater then cap "A" and less then "z"
+    wordCount++;
+    return;
+  }
+  else if(pl==' ')
+  {//base case
+    return;
+  };
+  wordCount++;
+  lastWordCount();
+}
+void positionReset()
+{
+  lineCount--;//recursively seek position
+  if (printedLetters[editLine][lineCount])//if position is full
+  {//base case
+    return;
+  }
+  positionReset();
 }
 //--------------------------------------------Typing functions
 void printLetter(byte letterNum)
@@ -221,6 +275,10 @@ void setControls()
   assign(31, getValue(),0);//which is address 62 in EEPROM
   backSpaces(8);//Remove the prompt
 }
+
+
+
+
 
 
 
