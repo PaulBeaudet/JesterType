@@ -29,6 +29,11 @@ Serial Testing- On these platforms the usb programmer would need to be flashed i
 * Arduino UNO- Serial testing should be semi-functional
 * Arduino MEGA- Serial testing should be semi-functional
 
+The goal is collaborative development! Open Source Hardware and Software
+How the hardware developement is going to work is still pending
+If you would like to getting involved please introduce your self in the google group/mailing list- 
+[Google Groups](https://groups.google.com/forum/?fromgroups#!forum/jestertype)
+
 
 Copy notice
 ----------------
