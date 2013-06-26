@@ -49,51 +49,45 @@ prog_char stagedLearning[][13] PROGMEM=
 };
 //---------------------------------------------****************************************
 byte prioritizedLearn(word chord)
-{//learn by frequency
-  static byte common=0;
-  static byte uncommon=0;
-
-  if(common<13 && simpleChord(chord) || uncommon == 13)
+{//learn by priority 
+  byte common=EEPROM.read(COMMON);
+  byte uncommon=EEPROM.read(UNCOMMON);
+  if(common<13 && simpleChord(chord) || uncommon== 13)
   {
-    byte letter=pgm_read_byte(&stagedLearning[0][common]);//check the frequency
+    byte letter=pgm_read_byte(&stagedLearning[0][common]);
     if(assign(letter, chord, EEPROM.read(ONSECOND)))
-    {//attempt the assignment
-      common++;
-      if(uncommon==13 && common ==13)//if the this is the last letter
-      {
-        uncommon=0;//set i back to zero for the second layout
-        common=0;
-        learningProgression();//signify learning is done so that the filter can kick in
-      }
+    {
+      EEPROM.write(COMMON, common+1);//increment to 12
+      learningProgression();
       return letter;
     }
   }
   else if(uncommon<13 || common==13)
   {
-    byte letter=pgm_read_byte(&stagedLearning[1][uncommon]);//check the frequency
+    byte letter=pgm_read_byte(&stagedLearning[1][uncommon]);
     if(assign(letter, chord, EEPROM.read(ONSECOND)))
-    {//attempt the assignment
-      uncommon++;//increment to 12
-      if(uncommon==13 && common ==13)//if the this is the last letter
-      {
-        uncommon=0;//set i back to zero for the second layout
-        common=0;
-        learningProgression();//signify learning is done so that the filter can kick in
-      }
+    {
+      EEPROM.write(UNCOMMON, uncommon+1);//increment to 12
+      learningProgression();
       return letter;
-    }//signify learning is done so that the filter can kick in
+    }
   };
 }
 void learningProgression()
-{
-  if(EEPROM.read(ONSECOND))
-  {//if a modifier value reads aka on second layout
-    EEPROM.write(DONELEARNING, true);
-  }
-  else
-  {//if its not on the second layout, put it there
-    EEPROM.write(ONSECOND, SECONDLAY);//write the second layout offset to the flag
-  };
+{//persistently interperts and rigts place in the learing process
+    if(EEPROM.read(UNCOMMON)==13 && EEPROM.read(COMMON) ==13)
+    {//if the this is the last letter of either case
+      EEPROM.write(UNCOMMON, 0);//set i back to zero for the second layout
+      EEPROM.write(COMMON, 0);
+      if(EEPROM.read(ONSECOND))
+      {//if a modifier value reads aka on second layout
+        EEPROM.write(DONELEARNING, true);
+      }
+      else
+      {//if its not on the second layout, put it there
+        EEPROM.write(ONSECOND, SECONDLAY);//write the second layout offset to the flag
+      };
+    }
 }
 
 boolean simpleChord(word chord)//determines a quick press chord
@@ -214,7 +208,7 @@ byte likelyLetter(word chord)//#################!! future addition
 //#########################################Auto suggest
 void autoSug()
 {//makes a suggestion based on typed letters
-  if (wordCount && wordCount<4)//1,2,3
+  if (wordCount && wordCount<4)//1,2,3 !! If word count is zero this is a no go, which is the case after an auto correct!!
   {//given the typed letters meet the list capibilities 
     for(word i=comboIndex[wordCount-1];i<comboIndex[wordCount];i++)
     {//for everthing in the list
@@ -247,7 +241,7 @@ void autoSug()
 }
 void autoFill()
 {
-  backSpaces(wordCount);// delete current printout plus the space
+  backSpaces(wordCount);// delete current printout plus the space ###!! space is included in the word count??
   buffPrint();//print new suggestion
   pressKey(' ');//press a space to start a new word 
   //print suggestion into the letter buffer
@@ -268,7 +262,8 @@ void autoFill()
   }
   lineCount-=wordCount;//subtract the unused word
   lineCount+=j; // add the suggestion size to the line count
-  cleanSug();//remove the previous suggestion 
+  wordCount=0;
+  cleanSug();//remove the previous suggestion for a clean out put
   //clean suggestion only normally happens with letter printing
 }
 
@@ -288,9 +283,9 @@ void buffPrint()
 }
 void cleanSug()//Clear suggestion
 {
-  byte scope=suggestSize();
+  byte scope=suggestSize();//get the size of the value in the buffer
   if(scope)
-  { 
+  {//if there is anything in the buffer 
     movement(scope+1,RIGHT);//move cursor size of suggestion plus space
     backSpaces(scope+1);//remove suggestion + space
     eraseBuffer(scope);//reset wordlist buffer
@@ -306,11 +301,11 @@ void eraseBuffer(byte scope)
 byte suggestSize()
 {
   for(byte scope=0;scope<BUFFSIZE;scope++)
-  {
+  {//for all the possiblilities in the buffer
     if(!buffer[scope])
-    {
-      return scope; 
-    }
+    {//if the examined byte in the buffer is null
+      return scope; //return the examined possition
+    }//in other words the size of the buffer
   }
 }
 

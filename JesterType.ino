@@ -27,7 +27,7 @@
  the current default 
  Other sensor arrangements will be used in the future 
  #$$$$$$$$$$$###################################################################*/
-#define KEY 6//persistent session key, change to start over *!!default is 5
+#define KEY 5//persistent session key, change to start over *!!default is 5
 //$$$$$$$$$$$(if forgot yes/no assignment or are testing the learning process)
 //----------------Defined EEPROM addresses/ explains how address-space is used
 #define SECONDABEGIN 2//second layout of lowercase letters
@@ -36,8 +36,8 @@
 #define NO 62//no chord storage
 #define FIRSTASSIGNMENTBEGIN 194//divided by two equals ascii 'a'
 #define FIRSTASSIGNMENTEND 246//to ascii 'z'
-#define COMMONLETTERS 252 //counts letters learned
-#define UNCOMMONLETTERS 253 //counts letters learned
+#define COMMON 252 //counts letters learned
+#define UNCOMMON 253 //counts letters learned
 #define ONSECOND 254 //location in EEPROM 254//error correction and alternate assignments
 #define DONELEARNING 255 //location in EEPROM 255
 //3 steps Aquiring first layout F/F, second layout T/F, DONELEARNING T/T
@@ -64,7 +64,7 @@ void loop()
   while(true)//to provide a way to start from step one with a return
   {
     autoLineReturn();//:controlMacros//JesterType defined linesize limiter
-    word chordValue=getValue();//:valueAssement//get the current button status 
+    word chordValue=getValue();//:valueAssement//get the current button status
     if(chordValue==readChord(YES))
     {// if yes or no do those and restart the loop//:ControlMacros
       yesCase();//:controlMacros
@@ -76,8 +76,8 @@ void loop()
       return;//restart the loop
     }
     //-------------------------------letter related steps
-    cleanSug();//clear the old suggestion before printing the next letter
     //figure out if the chord is a letter that has an assignment in eeprom
+    cleanSug();//clear the old suggestion before printing the next letter
     byte letter=check(chordValue);//:Assignments
     if(letter)// if the letter was assigned
     {//than print it
