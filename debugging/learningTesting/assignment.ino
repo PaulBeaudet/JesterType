@@ -22,9 +22,38 @@ boolean assign(byte letter, word chord, byte modifier)
   {
     return false;
   };//so the function knows it could not be passed
-
 }
 
+void unassign()
+{
+  byte letter=EEPROM.read(LASTLETTER);//gather last guessed letter
+  if(letter)//only if there is a letter in the assignment
+  {//basically this is necissary when testing on every backspace
+    byte address= letter-EEPROM.read(ONSECOND);
+    EEPROM.write(address*2, 0);//overwrite first half of word
+    EEPROM.write(address*2+1, 0);//overwrite second half of word
+    byte count=EEPROM.read(TRUECOUNT);
+    EEPROM.write(TRUECOUNT,count-1);
+    EEPROM.write(LASTLETTER,0);//reset last letter to prevent subsequent unassigns
+  }
+}
+
+//checking by frequency
+byte checkByFreq(word chordValue)
+{
+  for(int layoutOffset=0;layoutOffset<SECONDLAY+1;layoutOffset+SECONDLAY)
+  {//for each assignment
+    for(int letter=0;letter<26;letter++)//for every letter
+    {
+      byte address = pgm_read_byte(&staticCommons[letter])-layoutOffset;
+      if(readChord(address*2) == chordValue)
+      { //check there is something the equals the current chord
+        return staticCommons[address];
+      }
+    }
+  }
+  return 0;//if nothing was found return 0 signifing no chords found
+}
 //Checking
 byte check(word chordValue)
 {
@@ -87,4 +116,5 @@ boolean session(int address, byte code)
     // true, ie do things unique to an unestablished session 
   };
 }
+
 

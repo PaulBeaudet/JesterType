@@ -8,10 +8,10 @@ char buffer[BUFFSIZE];//global for wordlist
 prog_char stagedLearning[][13] PROGMEM=
 {
   {
-    't','o','a','w','c','d','s','f','m','r','h','i','e'                      }
+    't','o','a','w','c','d','s','f','m','r','h','i','e'                                }
   ,
   {
-    'b','y','g','l','n','u','j','k','p','v','q','x','z'                      }
+    'b','y','g','l','n','u','j','k','p','v','q','x','z'                                }
 };
 //---------------------------------------------****************************************
 /*CHALENGE 
@@ -20,28 +20,155 @@ prog_char stagedLearning[][13] PROGMEM=
  itself but I still scratching my head as to how to parse it without a massive amount of iteration
  evertime a letter needs to be learned.
  *//*
-byte iLearn(word chord)
+byte iLearn(word chord)//suggestion based learner !!draft
+ {
+ byte suggestion=getSuggestion();
+ if(suggestion)//if there is a suggestion base on the wordlist
+ {
+ return suggestion;
+ }
+ else
+ {//other wise give a letter based on priority
+ return prioritizedLearn(chord);
+ }
+ }
+ 
+ byte getSuggestion()
+ {//return 0 if there is no suggustion
+ //discern typed letters
+ //look up typed letters
+ return sLetter;//if they match return a suggestion of the next letter in the predicted word
+ }
+ */
+byte rLearn(word chord)
 {
-  byte suggestion=getSuggestion();
-  if(suggestion)//if there is a suggestion base on the wordlist
-  {
-    return suggestion;
+  byte letter;
+  if(EEPROM.read(REBUKE) && EEPROM.read(RPOSSITION))//flag to time to rebuke, and at least on rebuked letter exist
+  {//assign rebuked letters
+    letter=rAvailLearn(chord);
+    if(letter)
+    {
+      return letter;
+    }
+    else
+    {
+      EEPROM.write(REBUKE, false);
+    };
   }
   else
-  {//other wise give a letter based on priority
-    return prioritizedLearn(chord);
+  {
+    letter=prioritizedLearn(chord);
+    if(letter)
+    {
+      return letter;
+    }
+  };
+}
+
+byte availablityLearn(word chord)
+{//check for rebuked letter to be learned
+  byte letter=EEPROM.read(RPOSSITION);//gather current read possition
+  byte firstGuess=letter;
+  while(!assign(letter,chord,EEPROM.read(ONSECOND)))
+  {
+    if(letter==122)//if we are at z
+    {//some where an infinacy test needs to be done
+      letter=97;//set back to a
+    }
+    else
+    {
+      letter++;
+    }
+    if(letter==firstGuess)//escape case everything has been checked
+    {
+      EEPROM.write(RPOSSITION, 0);
+    }
+  }
+  EEPROM.write(RPOSSITION, letter+1);
+  return letter;
+}
+
+byte rAvailLearn(word chord)//recursive version of availible learn
+{
+  static byte rletter=EEPROM.read(RPOSSITION);//gather current read possition
+  static byte firstGuess=rletter;
+  if(assign(rletter,chord,EEPROM.read(ONSECOND)))//primary base case
+  {
+    rletter++;
+    EEPROM.write(RPOSSITION,rletter);
+    return rletter;
+  }
+  if(rletter==122)//if we are at 'z'
+  {
+    rletter=97;//set back to 'a'
+  }
+  else
+  {
+    rletter++;//increment the letter to test next
+  }
+  if(rletter==firstGuess)//alternitive base case given everything has been checked
+  {
+    EEPROM.write(RPOSSITION, 0);
+    return 0;//hey couldn't find anything that is availible!
+  }
+  rAvailLearn(chord);
+}
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+byte learnMemByFreq(word chord)//learning function that accounts for assignment rejection
+{
+  byte count=EEPROM.read(TRUECOUNT);//varify number of assigned letters
+  if(count==26)//if every assignment has been made
+  {//proceed to increment to a different learning phase
+    if(EEPROM.read(ONSECOND))//if ONSECOND was the current phase
+    {//if a modifier value reads aka on second layout
+      EEPROM.write(DONELEARNING, true);//mark learning as done
+    }
+    else
+    {//if its not on the second layout, put it there
+      EEPROM.write(ONSECOND, SECONDLAY);//write the second layout offset to the flag
+    };
+    count=0;
+  }/*
+  for(byte pos=EEPROM.read(RPOSSITION);pos<26;pos++)//for every letter
+  {
+    byte letter = pgm_read_byte(&staticCommons[pos]);
+    if(assign(letter,chord,EEPROM.read(ONSECOND)))//!!what if this is false?
+    { //check for vacancy, if an assignment is made true is returned
+      EEPROM.write(TRUECOUNT, count+1);//increment the count of assigned letters//decressed with unassign()
+      EEPROM.write(RPOSSITION, posTicker(pos));//cycle the read possition
+      EEPROM.write(LASTLETTER, letter);//earmark the last letter that was printed
+      return letter;//return the letter to be printed
+    }
+  }*/
+  byte pos=EEPROM.read(RPOSSITION);
+  while(true)//dont stop untill a letter is found
+  {//in the case that all of the letters are found this part of the function will have been shorted
+    byte letter = pgm_read_byte(&staticCommons[pos]);
+    if(assign(letter,chord,EEPROM.read(ONSECOND)))//if false moves on to next possition
+    { //check for vacancy, if an assignment is made true is returned
+      EEPROM.write(TRUECOUNT, count+1);//increment the count of assigned letters//decressed with unassign()
+      EEPROM.write(RPOSSITION, posTicker(pos));//cycle the read possition
+      EEPROM.write(LASTLETTER, letter);//earmark the letter being returned in order to be able to unassign it
+      return letter;//return the letter to be printed
+    }
+    pos=posTicker(pos);//continue to increment 0 to 26 over and over
   }
 }
 
-byte getSuggestion()
-{//return 0 if there is no suggustion
-  //discern typed letters
-  //look up typed letters
-  return sLetter;//if they match return a suggestion of the next letter in the predicted word
+
+
+byte posTicker(byte pos)//abstracted position cycling
+{  
+  pos=pos+1;//increment the possition number to avoid reguessing the same number
+  if(pos==26)
+  {//if the possition is now past 'z' set it back to 'a'
+    pos=0;//reset the possition number to zero or 'a'
+  }
+  return pos;
 }
-*/
+//-------------#################################################################### Existing
 byte prioritizedLearn(word chord)
-{//learn by 
+{//learn by
   byte common=EEPROM.read(COMMON);
   byte uncommon=EEPROM.read(UNCOMMON);
   if(common<13 && simpleChord(chord) || uncommon== 13)
@@ -65,21 +192,34 @@ byte prioritizedLearn(word chord)
     }
   };
 }
+//--------------------
 void learningProgression()
 {//persistently interperts and rigts place in the learing process
-    if(EEPROM.read(UNCOMMON)==13 && EEPROM.read(COMMON) ==13)
-    {//if the this is the last letter of either case
-      EEPROM.write(UNCOMMON, 0);//set i back to zero for the second layout
-      EEPROM.write(COMMON, 0);
-      if(EEPROM.read(ONSECOND))
-      {//if a modifier value reads aka on second layout
-        EEPROM.write(DONELEARNING, true);
-      }
-      else
-      {//if its not on the second layout, put it there
-        EEPROM.write(ONSECOND, SECONDLAY);//write the second layout offset to the flag
-      };
+  if(EEPROM.read(UNCOMMON)==13 && EEPROM.read(COMMON) ==13)
+  {//if the this is the last letter of either case
+    EEPROM.write(UNCOMMON, 0);//set i back to zero for the second layout
+    EEPROM.write(COMMON, 0);
+    if(EEPROM.read(ONSECOND))
+    {//if a modifier value reads aka on second layout
+      EEPROM.write(DONELEARNING, true);
     }
+    else
+    {//if its not on the second layout, put it there
+      EEPROM.write(ONSECOND, SECONDLAY);//write the second layout offset to the flag
+    };
+  }
+}
+
+//!! proposed
+boolean lettersBuffered()//return true if there is stuff in the buffer
+{
+  for(int i=STARTLEARNING;i<LASTLEARN;i++)//cycle through the letter buffered in eeprom
+  {
+    if(EEPROM.read(i))
+    {
+      return true;
+    }//trip flag giving something is in the buffer
+  }
 }
 
 boolean simpleChord(word chord)//determines a quick press chord
@@ -97,6 +237,7 @@ boolean simpleChord(word chord)//determines a quick press chord
   }//if this for loop ends without catching a greater than case.
   return true;
 }
+//------------------------------------------------------------------------------
 
 word comboIndex[]={//index of wordlist
   0,25,225,1348      }; //reduces iterations
@@ -118,4 +259,9 @@ byte suggestSize()
     }//in other words the size of the buffer
   }
 }
+
+
+
+
+
 
