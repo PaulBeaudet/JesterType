@@ -47,6 +47,12 @@ prog_char stagedLearning[][13] PROGMEM=
   {
     'b','y','g','l','n','u','j','k','p','v','q','x','z'                    }
 };
+
+prog_char staticCommons[26] PROGMEM=
+{
+  't','o','a','w','c','d','s','f','m','r','h','i','e','b','y','g','l','n','u','j','k','p','v','q','x','z' 
+};
+
 //---------------------------------------------****************************************
 byte prioritizedLearn(word chord)
 {//learn by priority 
@@ -105,7 +111,47 @@ boolean simpleChord(word chord)//determines a quick press chord
   }//if this for loop ends without catching a greater than case.
   return true;
 }
+// Alternitive learning functions
+byte learnMemByFreq(word chord)//learning function that accounts for assignment rejection
+{
+  byte count=EEPROM.read(TRUECOUNT);//varify number of assigned letters
+  if(count==26)//if every assignment has been made
+  {//proceed to increment to a different learning phase
+    if(EEPROM.read(ONSECOND))//if ONSECOND was the current phase
+    {//if a modifier value reads aka on second layout
+      EEPROM.write(DONELEARNING, true);//mark learning as done
+      return filter(chord);//given there are no more letters to learn treat the chord as noise
+    }//pass the chord through the noise filter and return it
+    else
+    {//if its not on the second layout, put it there
+      EEPROM.write(ONSECOND, SECONDLAY);//write the second layout offset to the flag
+    };
+    count=0;
+  }
+  byte pos=EEPROM.read(RPOSSITION);//read persistent possition number
+  while(true)//dont stop untill a letter is found
+  {//in the case that all of the letters are found this part of the function will have been shorted
+    byte letter = pgm_read_byte(&staticCommons[pos]);
+    if(assign(letter,chord,EEPROM.read(ONSECOND)))//if false moves on to next possition
+    { //check for vacancy, if an assignment is made true is returned
+      EEPROM.write(TRUECOUNT, count+1);//increment the count of assigned letters//decressed with unassign()
+      EEPROM.write(RPOSSITION, posTicker(pos));//cycle the read possition
+      EEPROM.write(LASTLETTER, letter);//earmark the letter being returned in order to be able to unassign it
+      return letter;//return the letter to be printed
+    }
+    pos=posTicker(pos);//continue to increment 0 to 26 over and over
+  }
+}
 
+byte posTicker(byte pos)//abstracted position cycling
+{  
+  pos=pos+1;//increment the possition number to avoid reguessing the same number
+  if(pos==26)
+  {//if the possition is now past 'z' set it back to 'a'
+    pos=0;//reset the possition number to zero or 'a'
+  }
+  return pos;
+}
 /*
 byte learnUser(word chord)//simple sub to the original 
  {//for one assignment

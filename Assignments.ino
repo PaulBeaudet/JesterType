@@ -25,8 +25,22 @@ boolean assign(byte letter, word chord, byte modifier)
 
 }
 
-//Checking
+//Unassignment
+void unassign()
+{
+  byte letter=EEPROM.read(LASTLETTER);//gather last guessed letter
+  if(letter)//only if there is a letter in the assignment
+  {//basically this is necissary when testing on every backspace
+    byte address= letter-EEPROM.read(ONSECOND);
+    EEPROM.write(address*2, 0);//overwrite first half of word
+    EEPROM.write(address*2+1, 0);//overwrite second half of word
+    byte count=EEPROM.read(TRUECOUNT);
+    EEPROM.write(TRUECOUNT,count-1);
+    EEPROM.write(LASTLETTER,0);//reset last letter to prevent subsequent unassigns
+  }
+}
 
+//Checking
 byte check(word chordValue)
 {
   for(int layoutOffset=0;layoutOffset<SECONDLAY+1;layoutOffset+=SECONDLAY)

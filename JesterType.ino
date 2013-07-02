@@ -36,6 +36,9 @@
 #define NO 62//no chord storage
 #define FIRSTASSIGNMENTBEGIN 194//divided by two equals ascii 'a'
 #define FIRSTASSIGNMENTEND 246//to ascii 'z'
+#define TRUECOUNT 249//count of learned letters in the proccess of the learning phase
+#define RPOSSITION 250//read possition for the learning process
+#define LASTLETTER 251//last letter that was assigned
 #define COMMON 252 //counts letters learned
 #define UNCOMMON 253 //counts letters learned
 #define ONSECOND 254 //location in EEPROM 254//error correction and alternate assignments
@@ -90,7 +93,7 @@ void loop()
     }
     else//learning still needs to be done
     {
-      printLetter(prioritizedLearn(chordValue));//:learing
+      printLetter(learnMemByFreq(chordValue));//:learing
       //print a newly guessed letter
     };
     autoSug();//make a suggestion based on the current letterBuffer

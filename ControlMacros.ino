@@ -100,6 +100,7 @@ void noCase()
   {//in all other cases 
     backSpace();//remove a character
     letterDecrement();//accounting involved with decreasing a letter
+    unassign();//unassign the last letter that was printed if one was printed
     yesCount=0;//set yes to 0 in order to define specific cases
   };
 }
