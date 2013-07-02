@@ -26,34 +26,22 @@ boolean assign(byte letter, word chord, byte modifier)
 }
 
 //Checking
+
 byte check(word chordValue)
 {
-  for(int address=FIRSTASSIGNMENTBEGIN;address<FIRSTASSIGNMENTEND;address+=2)
-    //for the first layout 194-246
-  {
-    //check there is something the equals the current chord
-    if(readChord(address) == chordValue)
-    {
-      return address/2;
-      //translates to ascii number for the represented letter
-      //first layout defined by a mutipul of 2
-      // because ints need to be seperated into 2 bytes
+  for(int layoutOffset=0;layoutOffset<SECONDLAY+1;layoutOffset+=SECONDLAY)
+  {//for each assignment
+    for(int i=97;i<123;i++)
+    {//for every letter
+      byte address= i-layoutOffset;//define address area
+      if(readChord(address*2) == chordValue)
+      {//if that address matches the current chord
+        return address;//return the assosiated letter
+      }
     }
-  }
-  //continue given no matches are found
-  for(int address=SECONDABEGIN;address<SECONDAEND; address+=2)
-    //for the second layout 2-56
-  {
-    if(readChord(address) == chordValue)
-    {
-      return address/2+SECONDLAY;
-      //translates to ascii number for the represented letter
-      //second layout defined by an offset
-    }
-  }
-  //no assignments made for given cord, return 0 or false
+  }//total of 52 iterations if not found
   return 0;
-}
+};
 
 word readChord(int address)
 {
@@ -88,8 +76,3 @@ boolean session(int address, byte code)
     // true, ie do things unique to an unestablished session 
   };
 }
-
-
-
-
-
