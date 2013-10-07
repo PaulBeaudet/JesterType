@@ -1,5 +1,8 @@
 Gesture Based Text input device
 ===============================
+Notice!
+----------------------
+Project currently dormant, please contact Paul for further interest- inof8or@gmail.com
 
 Primary Goals
 ----------------------
