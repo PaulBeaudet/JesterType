@@ -80,7 +80,7 @@ void loop()
     }
     //-------------------------------letter related steps
     //figure out if the chord is a letter that has an assignment in eeprom
-    cleanSug();//clear the old suggestion before printing the next letter
+    //cleanSug();//clear the old suggestion before printing the next letter
     byte letter=check(chordValue);//:Assignments
     if(letter)// if the letter was assigned
     {//than print it
@@ -96,7 +96,7 @@ void loop()
       printLetter(learnMemByFreq(chordValue));//:learing
       //print a newly guessed letter
     };
-    autoSug();//make a suggestion based on the current letterBuffer
+    //autoSug();//make a suggestion based on the current letterBuffer
     //Keyboard.print(freeMemory());//test mem usage: last test:2288
     //displayBuffer();
   }

@@ -39,7 +39,7 @@ char buffer[BUFFSIZE];//global for wordlist
  
  //------------------------------------------------------------------------learning functions 
  */
-prog_char stagedLearning[][13] PROGMEM=
+prog_char const stagedLearning[][13] PROGMEM=
 {
   {
     't','o','a','w','c','d','s','f','m','r','h','i','e'                    }
@@ -48,7 +48,7 @@ prog_char stagedLearning[][13] PROGMEM=
     'b','y','g','l','n','u','j','k','p','v','q','x','z'                    }
 };
 
-prog_char staticCommons[26] PROGMEM=
+prog_char const staticCommons[26] PROGMEM=
 {
   't','o','a','w','c','d','s','f','m','r','h','i','e','b','y','g','l','n','u','j','k','p','v','q','x','z' 
 };
@@ -252,6 +252,7 @@ byte likelyLetter(word chord)//#################!! future addition
  }//given the word list is exsusted of options
  }*/
 //#########################################Auto suggest
+/*
 void autoSug()
 {//makes a suggestion based on typed letters
   if (wordCount && wordCount<4)//1,2,3 !! If word count is zero this is a no go, which is the case after an auto correct!!
@@ -356,5 +357,5 @@ byte suggestSize()
 }
 
 
-
+*/
 

@@ -28,7 +28,7 @@
 //prog_char RTN = KEY_RETURN;
 #define BACK 178
 //-----------------------------
-///*
+/*
 void outputUp()
 {
   Keyboard.begin();
@@ -77,4 +77,4 @@ void movement(int increment, boolean bearing)
     Keyboard.write(going);
   }
 }
-//*/
+*/

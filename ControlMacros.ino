@@ -68,7 +68,7 @@ void noCase()
       }
       else
       {
-        autoFill();//fill in the suggestion word
+        //autoFill();//fill in the suggestion word
         noCount++;//so that autofill does not continue 
       };
     }

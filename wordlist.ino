@@ -5,6 +5,7 @@
 //seem to need to be included in the same tab
 
 //common words to autocorrect based on first letter
+/*
 prog_char str0[] PROGMEM = "the";
 prog_char str1[] PROGMEM = "be";
 prog_char str2[] PROGMEM = "of";
@@ -2718,4 +2719,4 @@ void findWord(word wordNumber)//reads a word from the wordlist into the buffer
 {
   strcpy_P(buffer, (char*)pgm_read_word(&(oneCombos[wordNumber])));
 }
-
+*/
