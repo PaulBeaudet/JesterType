@@ -13,8 +13,8 @@
 //resting need to be changed to reflected the number of buttons
 //-----------------------------------------------------------------define buttons
 byte buttons[]=
-{
-  6,7,8,9,10
+{//usb lilypad arrangement
+  9,10,11,A2,A3 
 };
 #define NUMBUTTONS sizeof(buttons)
 void inputUp()

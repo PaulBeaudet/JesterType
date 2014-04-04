@@ -2,8 +2,8 @@
 
 #include <SoftwareSerial.h>
 
-SoftwareSerial BT = SoftwareSerial(4, 5);
-// pin 5 is tx connect this to rx on the bluefruit
+SoftwareSerial BT = SoftwareSerial(A4, A5);//first is rx, second is tx
+//connect tx to rx on the bluefruit
 
 #define BACK 178
 #define KEY_RETURN byte(0x0A)

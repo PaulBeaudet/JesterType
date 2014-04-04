@@ -1,7 +1,6 @@
 #include<avr/pgmspace.h>//explicitly stated read only memory
 #include <EEPROM.h>//persistent write-able in runtime memory
-//#include <MemoryFree.h>//http://playground.arduino.cc/Code/AvailableMemory
-//
+
 /*
  ###########COPY NOTICE######################################################
  JesterType- a funny way to use an arduino to type with gestures
@@ -61,7 +60,7 @@ void setup()
   }
 }
 //-----------------------------------------------------------------------------begin main loop
-//KEY- following"//:" = file/tab dependency
+
 void loop()
 {
   while(true)//to provide a way to start from step one with a return
@@ -80,7 +79,6 @@ void loop()
     }
     //-------------------------------letter related steps
     //figure out if the chord is a letter that has an assignment in eeprom
-    //cleanSug();//clear the old suggestion before printing the next letter
     byte letter=check(chordValue);//:Assignments
     if(letter)// if the letter was assigned
     {//than print it
@@ -96,8 +94,5 @@ void loop()
       printLetter(learnMemByFreq(chordValue));//:learing
       //print a newly guessed letter
     };
-    //autoSug();//make a suggestion based on the current letterBuffer
-    //Keyboard.print(freeMemory());//test mem usage: last test:2288
-    //displayBuffer();
   }
 }
