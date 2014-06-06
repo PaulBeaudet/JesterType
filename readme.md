@@ -2,7 +2,7 @@ Gesture Based Text input device
 ===============================
 Notice!
 ----------------------
-Project currently dormant, please contact Paul for further interest- inof8or@gmail.com
+Project currently dormant and has progressed to newer effors, please contact Paul for further interest- inof8or@gmail.com
 
 Primary Goals
 ----------------------
@@ -23,7 +23,6 @@ Currently Supported Devices
 HID Supported platforms- "by the arduino language":
 * Arduino Micro- working alpha (testing platform)
 * Arduino USB Lilly pad- Should work, untested
-* Arduino DUE- Should Work, untested
 * Arduino LEONARDO- Should Work, untested
 
 Serial Testing- On these platforms the usb programmer would need to be flashed in order become a HID
@@ -34,9 +33,7 @@ Serial Testing- On these platforms the usb programmer would need to be flashed i
 
 Involvement
 ------------
-The goal is collaborative development! Open Source Hardware and Software. How the hardware developement is going to work is still pending. If you would like to getting involved please introduce your self in the google group/mailing list- 
-[Google Groups](https://groups.google.com/forum/?fromgroups#!forum/jestertype)
-
+The goal is collaborative development! Open Source Hardware and Software. 
 
 Copy notice
 ----------------
